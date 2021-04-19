@@ -1,9 +1,21 @@
-import path from 'path'
-import { CWD } from './utils'
-import uploadFile from './uploadFile'
+#!/usr/bin/env node
 
-async function main() {
-  await uploadFile(path.join(CWD, 'assets', 'testFile.txt'), 'test/sub')
-}
+import { createCommand } from 'commander'
 
-main()
+const program = createCommand()
+
+program
+  .command('test1')
+  .description('description of test1')
+  .action(() => {
+    console.log('test1')
+  })
+
+program
+  .command('test2')
+  .description('description of test2')
+  .action(() => {
+    console.log('test2')
+  })
+
+program.parse()
