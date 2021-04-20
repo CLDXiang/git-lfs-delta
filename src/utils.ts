@@ -6,13 +6,32 @@ import path from 'path'
 /** current working directory */
 export const CWD = process.cwd()
 
-/** command field */
-export const FIELD = 'lfsd'
+/** command field. FIXME: replace 'lfs' to a custom one */
+export const FIELD = 'lfs'
 
-/** output a error message and exit process */
-export function errorExit(msg: string) {
-  console.error(`${chalk.red('error')} ${msg}`)
-  process.exit(1)
+/** logger and process control */
+export const logger = {
+  /** output a error message and exit process if necessary */
+  error(msg: string, exit = true) {
+    console.error(`${chalk.red('error')} ${msg}`)
+    if (exit) {
+      process.exit(1)
+    }
+  },
+  /** output a warning message and exit process if necessary */
+  warn(msg: string, exit = true) {
+    console.warn(`${chalk.yellow('warn')} ${msg}`)
+    if (exit) {
+      process.exit(1)
+    }
+  },
+  /** output a success message and exit process if necessary */
+  success(msg: string, exit = false) {
+    console.log(`${chalk.green('success')} ${msg}`)
+    if (exit) {
+      process.exit(0)
+    }
+  },
 }
 
 /** backend url to store object. TODO: can be config */
@@ -26,7 +45,7 @@ export const API = axios.create({
 /** check whether current working directory is a git repository, if it's not, exit */
 export function checkGitRepo() {
   if (!fs.existsSync('.git')) {
-    errorExit(
+    logger.error(
       'This is not a git repository, please run this command in root directory of a git repository',
     )
   }
