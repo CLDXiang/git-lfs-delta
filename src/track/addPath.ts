@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { logger, absPath, FIELD } from '../utils'
+import cp from 'child_process'
+import { logger, absPath, FIELD, CWD } from '../utils'
 import { readLFSDPaths, appendFile } from './utils'
 
 export function addPath(newPath: string) {
@@ -27,7 +28,30 @@ export function addPath(newPath: string) {
 
   logger.success(`Add path "${newPathTrim}" in .gitattributes`)
 
-  // TODO: modify gitconfig
+  // modify global gitconfig
+  cp.spawnSync(
+    'git',
+    ['config', '--global', `filter.${FIELD}.smudge`, 'git-lfsd smudge %f'],
+    {
+      cwd: CWD,
+    },
+  )
+  // TODO: add process
+
+  cp.spawnSync(
+    'git',
+    ['config', '--global', `filter.${FIELD}.required`, 'true'],
+    {
+      cwd: CWD,
+    },
+  )
+  cp.spawnSync(
+    'git',
+    ['config', '--global', `filter.${FIELD}.clean`, 'git-lfsd clean %f'],
+    {
+      cwd: CWD,
+    },
+  )
 
   // add hooks
   const hooksPath = absPath('.git/hooks')

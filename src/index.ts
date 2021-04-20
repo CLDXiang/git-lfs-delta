@@ -51,11 +51,11 @@ program
   })
 
 // filter
-program.command('clean <file>').action((file) => {
+program.command('clean <file>').action((file: string) => {
   clean()
 })
 
-program.command('smudge <file>').action((file) => {
+program.command('smudge <file>').action((file: string) => {
   smudge()
 })
 
