@@ -4,7 +4,7 @@
   "license": "MIT",
   "main": "./dist/index.js",
   "bin": {
-    "gitd": "./dist/index.js"
+    "git-lfsd": "./dist/index.js"
   },
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
