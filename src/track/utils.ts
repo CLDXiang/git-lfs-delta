@@ -38,8 +38,16 @@ export function appendFile(
 ) {
   const fileContent = fs.readFileSync(file).toString()
   if (fileContent[fileContent.length - 1] === '\n') {
-    fs.appendFileSync(file, data, options)
+    fs.appendFileSync(
+      file,
+      `${data}${data[data.length - 1] === '\n' ? '' : '\n'}`,
+      options,
+    )
   } else {
-    fs.appendFileSync(file, `\n${data}`, options)
+    fs.appendFileSync(
+      file,
+      `\n${data}${data[data.length - 1] === '\n' ? '' : '\n'}`,
+      options,
+    )
   }
 }
