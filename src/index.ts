@@ -2,10 +2,13 @@
 
 import { createCommand } from 'commander'
 import { viewPaths, addPath } from './track'
+import { clean } from './clean'
+import { smudge } from './smudge'
 import { checkGitRepo } from './utils'
 
 const program = createCommand()
 
+// track
 program
   .command('track [path]')
   .description('View or add Git LFS delta paths to Git attributes')
@@ -18,11 +21,11 @@ program
     addPath(path)
   })
 
+// hooks
 program
   .command('post-checkout')
   .description('Description of post-checkout')
   .action(() => {
-    checkGitRepo()
     console.log('post-checkout')
   })
 
@@ -30,7 +33,6 @@ program
   .command('post-commit')
   .description('Description of post-commit')
   .action(() => {
-    checkGitRepo()
     console.log('post-commit')
   })
 
@@ -38,7 +40,6 @@ program
   .command('post-merge')
   .description('Description of post-merge')
   .action(() => {
-    checkGitRepo()
     console.log('post-merge')
   })
 
@@ -46,8 +47,20 @@ program
   .command('pre-push')
   .description('Description of pre-push')
   .action(() => {
-    checkGitRepo()
     console.log('pre-push')
   })
+
+// filter
+program.command('clean <file>').action((file) => {
+  clean()
+})
+
+program.command('smudge <file>').action((file) => {
+  smudge()
+})
+
+program.command('filter-process').action(() => {
+  console.log('filter-process')
+})
 
 program.parse()

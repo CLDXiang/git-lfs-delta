@@ -6,8 +6,8 @@ import path from 'path'
 /** current working directory */
 export const CWD = process.cwd()
 
-/** command field. FIXME: replace 'lfs' to a custom one */
-export const FIELD = 'lfs'
+/** command field */
+export const FIELD = 'lfsd'
 
 /** logger and process control */
 export const logger = {
