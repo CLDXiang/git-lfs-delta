@@ -11,7 +11,6 @@ program
   .description('View or add Git LFS delta paths to Git attributes.')
   .action((path?: string) => {
     checkGitRepo()
-    console.log(path)
     if (path === undefined) {
       viewPaths()
       return

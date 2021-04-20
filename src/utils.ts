@@ -1,9 +1,13 @@
 import axios from 'axios'
 import fs from 'fs'
 import chalk from 'chalk'
+import path from 'path'
 
 /** current working directory */
 export const CWD = process.cwd()
+
+/** command field */
+export const FIELD = 'lfsd'
 
 /** output a error message and exit process */
 export function errorExit(msg: string) {
@@ -26,4 +30,9 @@ export function checkGitRepo() {
       'This is not a git repository, please run this command in root directory of a git repository',
     )
   }
+}
+
+/** get absolute path by relative path */
+export function absPath(relativePath: string) {
+  return path.join(CWD, relativePath)
 }
