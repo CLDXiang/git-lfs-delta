@@ -9,6 +9,9 @@ export const CWD = process.cwd()
 /** command field */
 export const FIELD = 'lfsd'
 
+/** version */
+export const VERSION = `${FIELD}@1`
+
 /** logger and process control */
 export const logger = {
   /** output a error message and exit process if necessary */

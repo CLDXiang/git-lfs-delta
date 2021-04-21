@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import path from 'path'
 import { localCachePath } from '../utils'
 import { uploadFile } from '../../server'
+import { VERSION } from '../../utils'
 
 function storeFileToLocalCache(fileContent: Buffer) {
   /** file content SHA-256 */
@@ -39,7 +40,7 @@ export async function clean() {
   )
 
   // write index to stdout
-  const index = `version lfsd@1\noid sha256:${sha256}\nsize ${size}\n`
+  const index = `version ${VERSION}\noid sha256:${sha256}\nsize ${size}\n`
 
   process.stdout.write(index, 'utf-8')
 }
