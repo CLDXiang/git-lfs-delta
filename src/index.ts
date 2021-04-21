@@ -2,8 +2,7 @@
 
 import { createCommand } from 'commander'
 import { viewPaths, addPath } from './track'
-import { clean } from './clean'
-import { smudge } from './smudge'
+import { clean, smudge } from './filter'
 import { checkGitRepo } from './utils'
 
 const program = createCommand()
