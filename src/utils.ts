@@ -53,5 +53,8 @@ export function checkGitRepo() {
 
 /** get absolute path by relative path */
 export function absPath(relativePath: string) {
+  if (path.isAbsolute(relativePath)) {
+    return relativePath
+  }
   return path.join(CWD, relativePath)
 }
