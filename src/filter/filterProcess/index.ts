@@ -3,23 +3,35 @@ import { clean, smudge } from './commands'
 
 const MAX_PACKET_CONTENT_SIZE = 65516
 
+/** implement filter.process, see https://www.git-scm.com/docs/gitattributes#_long_running_filter_process
+ *
+ * to debug, set environment variable GIT_TRACE_PACKET = 1
+ */
 export async function filterProcess() {
+  /** all packet line buffers  */
   const packetBuffers: Buffer[] = []
 
+  /** process a complete chunk, read each line according to its size and push it into packetBuffers */
   function readChunk(chunk: Buffer) {
+    /** how many bytes processed */
     let offset = 0
     while (offset < chunk.length) {
+      /** the first 4 byte (hex) represent the bytes count of valid content following them */
       const sizeBuffer = chunk.slice(offset, offset + 4)
       offset += 4
       if (sizeBuffer.length !== 4) {
+        // less than 4 bytes, bad packet
         throw new Error(`invalid packet: '${sizeBuffer}'`)
       }
 
+      /** parse sizeBuffer to number */
       const packetSize = parseInt(sizeBuffer.toString(), 16)
       if (packetSize === 0) {
+        // receive flush packet, push an empty Buffer
         packetBuffers.push(Buffer.from([]))
       } else if (packetSize > 4) {
         const contentSize = packetSize - 4
+        /** Buffer containing real data */
         const contentBuffer = chunk.slice(offset, offset + contentSize)
         offset += contentSize
         if (contentBuffer.length !== contentSize) {
@@ -27,6 +39,7 @@ export async function filterProcess() {
             `invalid packet (${contentSize} bytes expected; ${contentBuffer.byteLength} bytes read)`,
           )
         }
+        // push real data Buffer to packetBuffers
         packetBuffers.push(contentBuffer)
       } else {
         throw new Error(`invalid packet size: ${packetSize}`)
@@ -34,6 +47,7 @@ export async function filterProcess() {
     }
   }
 
+  /** read an element(a line) from packetBuffers */
   function readPacketBin() {
     if (packetBuffers.length === 0) {
       throw new Error('unexpected empty buffer')
@@ -41,6 +55,7 @@ export async function filterProcess() {
     return packetBuffers.shift() as Buffer
   }
 
+  /** read an element(a line) from packetBuffers, and parse it as string(UTF-8), check LF */
   function readPacketText() {
     const content = packetBuffers.shift()?.toString() || ''
     if (!/\n$/.test(content)) {
@@ -51,12 +66,7 @@ export async function filterProcess() {
     return content.trim()
   }
 
-  function writePacketText(content: string) {
-    /** size to write, bytes of content + 4 bytes size + 1 byte LF */
-    const size = Buffer.from(content).byteLength + 5
-    console.log(`${preZero(size.toString(16))}${content}`)
-  }
-
+  /** write a Buffer line to STDOUT with its size */
   function writePacketBin(buffer: Buffer) {
     /** size to write, bytes of content + 4 bytes size */
     const size = buffer.byteLength + 4
@@ -64,12 +74,25 @@ export async function filterProcess() {
     process.stdout.write(buffer)
   }
 
+  /** write a text line to STDOUT with its size, with LF */
+  function writePacketText(content: string) {
+    /** size to write, bytes of content + 4 bytes size + 1 byte LF */
+    const size = Buffer.from(content).byteLength + 5
+    console.log(`${preZero(size.toString(16))}${content}`)
+  }
+
+  /** send a flush packet to STDOUT */
   function flushPacket() {
     process.stdout.write('0000')
   }
 
+  /** is initialize and version check finished? */
   let initChecked = false
 
+  /** check initialize and version from git and response to it
+   *
+   * this process only happen once after a handshake is open
+   */
   function checkInit() {
     if (initChecked || !packetBuffers.length) {
       return false
@@ -90,8 +113,13 @@ export async function filterProcess() {
     return true
   }
 
+  /** is capability check finished? */
   let capabilityChecked = false
 
+  /** check capabilities from git and response to it
+   *
+   * this process only happen once after initialize and version check
+   */
   function checkCapability() {
     if (capabilityChecked || !packetBuffers.length) {
       return false
@@ -116,6 +144,7 @@ export async function filterProcess() {
     return true
   }
 
+  /** process data packets from git */
   async function handleReceive() {
     if (!packetBuffers.length) {
       return
@@ -131,6 +160,7 @@ export async function filterProcess() {
       throw new Error('bad content start')
     }
 
+    // read all input real data
     let input = Buffer.from([])
     let done = false
     while (!done) {
@@ -143,6 +173,7 @@ export async function filterProcess() {
 
     let output = Buffer.from([])
     if (['clean', 'smudge'].includes(command)) {
+      // filter input into output
       if (command === 'clean') {
         output = await clean(input)
       } else if (command === 'smudge') {
@@ -155,6 +186,7 @@ export async function filterProcess() {
     writePacketText('status=success')
     flushPacket()
 
+    // if output is too long, split it into several packets
     for (let i = 0; i < output.length; i += MAX_PACKET_CONTENT_SIZE) {
       writePacketBin(output.slice(i, i + MAX_PACKET_CONTENT_SIZE))
     }
