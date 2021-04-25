@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { downloadFile } from '../../server'
-import { localCachePath } from '../utils'
+import { downloadFile } from '../server'
+import { localCachePath } from './utils'
 
 export async function smudge() {
   // read index from working directory

@@ -1,9 +1,9 @@
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
-import { localCachePath } from '../utils'
-import { uploadFile } from '../../server'
-import { VERSION } from '../../utils'
+import { localCachePath } from './utils'
+import { uploadFile } from '../server'
+import { VERSION } from '../utils'
 
 function storeFileToLocalCache(fileContent: Buffer) {
   /** file content SHA-256 */
