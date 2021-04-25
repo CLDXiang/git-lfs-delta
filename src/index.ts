@@ -2,7 +2,7 @@
 
 import { createCommand } from 'commander'
 import { viewPaths, addPath } from './track'
-import { clean, smudge } from './filter'
+import { clean, filterProcess, smudge } from './filter'
 import { checkGitRepo } from './utils'
 
 const program = createCommand()
@@ -59,7 +59,7 @@ program.command('smudge <file>').action((file: string) => {
 })
 
 program.command('filter-process').action(() => {
-  console.log('filter-process')
+  filterProcess()
 })
 
 program.parse()
