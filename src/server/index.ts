@@ -15,6 +15,7 @@ export async function uploadFile(localPath: string, serverPath: string) {
   })
 }
 
+// eslint-disable-next-line consistent-return
 export async function downloadFile(
   serverPath: string,
   localPath: string,
@@ -34,5 +35,5 @@ export async function downloadFile(
     return buffer
   }
 
-  return ''
+  process.exit(1)
 }
