@@ -36,8 +36,18 @@ export function addPath(newPath: string) {
       cwd: CWD,
     },
   )
-  // TODO: add process
-
+  cp.spawnSync(
+    'git',
+    [
+      'config',
+      '--global',
+      `filter.${FIELD}.process`,
+      'git-lfsd filter-process',
+    ],
+    {
+      cwd: CWD,
+    },
+  )
   cp.spawnSync(
     'git',
     ['config', '--global', `filter.${FIELD}.required`, 'true'],
