@@ -50,16 +50,16 @@ program
   })
 
 // filter
-program.command('clean <file>').action((file: string) => {
-  clean()
+program.command('clean <file>').action(async (file: string) => {
+  await clean()
 })
 
-program.command('smudge <file>').action((file: string) => {
-  smudge()
+program.command('smudge <file>').action(async (file: string) => {
+  await smudge()
 })
 
-program.command('filter-process').action(() => {
-  filterProcess()
+program.command('filter-process').action(async () => {
+  await filterProcess()
 })
 
 program.parse()

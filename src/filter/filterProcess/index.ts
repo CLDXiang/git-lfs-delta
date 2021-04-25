@@ -1,8 +1,9 @@
 import { preZero } from './utils'
+import { clean, smudge } from './commands'
 
 const MAX_PACKET_CONTENT_SIZE = 65516
 
-export function filterProcess() {
+export async function filterProcess() {
   const packetBuffers: Buffer[] = []
 
   function readChunk(chunk: Buffer) {
@@ -115,7 +116,7 @@ export function filterProcess() {
     return true
   }
 
-  function handleReceive() {
+  async function handleReceive() {
     if (!packetBuffers.length) {
       return
     }
@@ -142,7 +143,11 @@ export function filterProcess() {
 
     let output = Buffer.from([])
     if (['clean', 'smudge'].includes(command)) {
-      output = input
+      if (command === 'clean') {
+        output = await clean(input)
+      } else if (command === 'smudge') {
+        output = await smudge(input)
+      }
     } else {
       throw new Error(`bad command ${command}`)
     }

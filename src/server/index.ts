@@ -19,7 +19,7 @@ export async function uploadFile(localPath: string, serverPath: string) {
 export async function downloadFile(
   serverPath: string,
   localPath: string,
-): Promise<Buffer | string> {
+): Promise<Buffer> {
   const resp = await API.post<{
     type: string
     data: number[]
