@@ -4,6 +4,7 @@ import FormData from 'form-data'
 import { API, absPath } from '../utils'
 
 export async function uploadFile(localPath: string, serverPath: string) {
+  // TODO: progress, do this after move caller to pre-push hooks
   const data = new FormData()
 
   data.append('file', createReadStream(absPath(localPath)))

@@ -12,6 +12,7 @@ export async function clean() {
   const { sha256, size, filePath } = storeFileToLocalCache(stdin)
 
   // upload stdin to server
+  // TODO: this should be done at pre-push hooks
   await uploadFile(
     filePath,
     path.join(sha256.slice(0, 2), sha256.slice(2, 4), sha256),

@@ -21,33 +21,21 @@ program
   })
 
 // hooks
-program
-  .command('post-checkout')
-  .description('Description of post-checkout')
-  .action(() => {
-    console.log('post-checkout')
-  })
+program.command('post-checkout').action(() => {
+  // console.log('post-checkout')
+})
 
-program
-  .command('post-commit')
-  .description('Description of post-commit')
-  .action(() => {
-    console.log('post-commit')
-  })
+program.command('post-commit').action(() => {
+  // console.log('post-commit')
+})
 
-program
-  .command('post-merge')
-  .description('Description of post-merge')
-  .action(() => {
-    console.log('post-merge')
-  })
+program.command('post-merge').action(() => {
+  // console.log('post-merge')
+})
 
-program
-  .command('pre-push')
-  .description('Description of pre-push')
-  .action(() => {
-    console.log('pre-push')
-  })
+program.command('pre-push').action(() => {
+  // console.log('pre-push')
+})
 
 // filter
 program.command('clean <file>').action(async (file: string) => {
