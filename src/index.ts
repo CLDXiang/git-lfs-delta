@@ -3,7 +3,7 @@
 import { createCommand } from 'commander'
 import { viewPaths, addPath } from './track'
 import { clean, filterProcess, smudge } from './filter'
-import { checkGitRepo } from './utils'
+import { prePush } from './hooks'
 
 const program = createCommand()
 
@@ -12,7 +12,6 @@ program
   .command('track [path]')
   .description('View or add Git LFS delta paths to Git attributes')
   .action((path?: string) => {
-    checkGitRepo()
     if (path === undefined) {
       viewPaths()
       return
@@ -33,8 +32,8 @@ program.command('post-merge').action(() => {
   // console.log('post-merge')
 })
 
-program.command('pre-push').action(() => {
-  // console.log('pre-push')
+program.command('pre-push <args...>').action((args) => {
+  prePush(args)
 })
 
 // filter

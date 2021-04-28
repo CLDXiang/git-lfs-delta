@@ -1,23 +1,26 @@
 import fs from 'fs'
 import path from 'path'
 import cp from 'child_process'
-import { logger, absPath, FIELD, CWD } from '../utils'
+import { logger, FIELD, CWD, findGitRepoRootDir } from '../utils'
 import { readLFSDPaths, appendFile } from './utils'
 
 export function addPath(newPath: string) {
+  const gitRepoRootDir = findGitRepoRootDir()
+
   const newPathTrim = newPath.trim()
   if (!newPathTrim) {
     logger.error('Please provide a valid path')
   }
 
+  const attributeFilePath = path.join(gitRepoRootDir, '.gitattributes')
+
   // modify .gitattributes
-  const existingPaths = readLFSDPaths('.gitattributes')
+  const existingPaths = readLFSDPaths(attributeFilePath)
 
   if (existingPaths.includes(newPathTrim)) {
     logger.warn(`Path "${newPathTrim}" already exists in .gitattributes`)
   }
 
-  const attributeFilePath = absPath('.gitattributes')
   const contentToWrite = `${newPathTrim} filter=${FIELD} diff=${FIELD} merge=${FIELD} -text\n`
 
   if (!fs.existsSync(attributeFilePath)) {
@@ -64,7 +67,7 @@ export function addPath(newPath: string) {
   )
 
   // add hooks
-  const hooksPath = absPath('.git/hooks')
+  const hooksPath = path.join(gitRepoRootDir, '.git/hooks')
   if (!fs.existsSync(hooksPath)) {
     fs.mkdirSync(hooksPath)
   }
