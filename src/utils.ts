@@ -92,10 +92,10 @@ export function spawnSync(
   if (res.status === null) {
     // terminated due to a signal
     if (!res.signal) {
-      logger.error(`# ${commandString} - Unexpected termination`)
+      logger.error(`$ ${commandString} - Unexpected termination`)
     } else {
       logger.error(
-        `# ${commandString} - Terminated due to signal: ${res.signal}`,
+        `$ ${commandString} - Terminated due to signal: ${res.signal}`,
       )
     }
   } else if (res.status !== 0) {
@@ -103,7 +103,7 @@ export function spawnSync(
     if (res.error) {
       throw res.error
     }
-    logger.error(`# ${commandString} - ${res.stderr.toString()}`)
+    logger.error(`$ ${commandString} - ${res.stderr.toString()}`)
   }
   // return STDOUT as string
   return res.stdout.toString()
