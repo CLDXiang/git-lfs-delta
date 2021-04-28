@@ -1,7 +1,8 @@
 import fs from 'fs'
+import { logger } from './utils'
 
-const GIT_LFSD_SPACING = '$GIT_LFSD_SPACING$'
-const GIT_LFSD_CONSECUTIVE_ASTERISKS = '$GIT_LFSD_CONSECUTIVE_ASTERISKS$'
+const GIT_LFSD_SPACING = '#GIT_LFSD_SPACING#'
+const GIT_LFSD_CONSECUTIVE_ASTERISKS = '#GIT_LFSD_CONSECUTIVE_ASTERISKS#'
 
 /** An util parser to check whether some patterns match the .gitattributes config
  *
@@ -13,31 +14,34 @@ const GIT_LFSD_CONSECUTIVE_ASTERISKS = '$GIT_LFSD_CONSECUTIVE_ASTERISKS$'
  * - trailing-slash pattern which represents a directory
  */
 export default class AttributesParser {
-  constructor(attributesFilePath: string) {
+  constructor(attributesFileContent: string) {
     // init rules
-    this.rules = fs
-      .readFileSync(attributesFilePath, 'utf-8')
+    this.rules = attributesFileContent
       .split('\n')
       .map((line) =>
         line
-          .replace('\\ ', GIT_LFSD_SPACING)
+          .replace(/\\ /g, GIT_LFSD_SPACING)
           .trim()
-          .replace(GIT_LFSD_SPACING, '\\ '),
+          .replace(new RegExp(GIT_LFSD_SPACING, 'g'), ' '),
       ) // trim trailing spaces, replace all '\ ' to a marker temporarily so that they won't be trimmed
       .filter(
         (line) =>
-          line || // remove empty lines
-          line.startsWith('#') || // remove comment lines
-          line.startsWith('!') || // remove negative patterns
-          line.endsWith('/'), // remove trailing-slash patterns which represents a directory
+          line && // remove empty lines
+          !line.startsWith('#') && // remove comment lines
+          !line.startsWith('!') && // remove negative patterns
+          !line.endsWith('/'), // remove trailing-slash patterns which represents a directory
+      )
+      .map((line) =>
+        !line.startsWith('/') && !line.startsWith('**/') ? `**/${line}` : line,
       )
       .map(
         (line) =>
           line
-            .replace('**', GIT_LFSD_CONSECUTIVE_ASTERISKS)
-            .replace('*', '[^/]*')
-            .replace(GIT_LFSD_CONSECUTIVE_ASTERISKS, '.*')
-            .replace('?', '[^/]'), // to regexp
+            .replace(/\*\*/g, GIT_LFSD_CONSECUTIVE_ASTERISKS)
+            .replace(/\*/g, '[^/]*')
+            .replace(/\./g, '\\.')
+            .replace(new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS, 'g'), '.*')
+            .replace(/\?/g, '[^/]'), // to regexp
       )
       .map((line) => new RegExp(line))
   }
