@@ -63,24 +63,6 @@ export function absPath(relativePath: string) {
   return path.join(CWD, relativePath)
 }
 
-/** find the root directory of a git repo */
-export function findGitRepoRootDir(dir = CWD): string {
-  let dirAbsPath = absPath(dir)
-  let lastDirAbsPath = ''
-  while (dirAbsPath !== lastDirAbsPath) {
-    if (fs.existsSync(path.join(dirAbsPath, '.git'))) {
-      return dirAbsPath
-    }
-    lastDirAbsPath = dirAbsPath
-    // check parent dir
-    dirAbsPath = path.resolve(dirAbsPath, '..')
-  }
-  logger.error(
-    'This is not a git repository, please run this command a git repository',
-  )
-  return ''
-}
-
 /** extend child_process.spawnSync with error handler */
 export function spawnSync(
   command: string,
@@ -107,4 +89,27 @@ export function spawnSync(
   }
   // return STDOUT as string
   return res.stdout.toString()
+}
+
+/** find the root directory of a git repo */
+export function findGitRepoRootDir(dir = CWD): string {
+  // let dirAbsPath = absPath(dir)
+  // let lastDirAbsPath = ''
+  // while (dirAbsPath !== lastDirAbsPath) {
+  //   if (fs.existsSync(path.join(dirAbsPath, '.git'))) {
+  //     return dirAbsPath
+  //   }
+  //   lastDirAbsPath = dirAbsPath
+  //   // check parent dir
+  //   dirAbsPath = path.resolve(dirAbsPath, '..')
+  // }
+  // logger.error(
+  //   'This is not a git repository, please run this command a git repository',
+  // )
+  // return ''
+  return path.normalize(
+    spawnSync('git', ['rev-parse', '--show-toplevel'], {
+      cwd: dir,
+    }).trim(),
+  )
 }

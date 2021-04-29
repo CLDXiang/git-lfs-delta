@@ -59,8 +59,6 @@ test('file names are matched', () => {
   
   /*.ext`)
 
-  console.log(attributesParser.rules)
-
   expect(
     [
       'a.txt',
