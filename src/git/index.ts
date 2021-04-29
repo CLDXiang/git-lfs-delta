@@ -45,17 +45,19 @@ export class Git {
     return this.resolveRef('HEAD')
   }
 
-  /** git rev-list --objects fromRef..toRef */
+  /** git rev-list --objects fromRef..toRef
+   * if fromRef not provided, exec git rev-list --objects toRef
+   */
   revListObjects = (
-    fromRef: string,
     toRef: string,
+    fromRef?: string,
   ): {
     sha: string
     filePath?: string
   }[] => {
     const lines = spawnSync(
       'git',
-      ['rev-list', '--objects', `${fromRef}..${toRef}`],
+      ['rev-list', '--objects', `${fromRef ? `${fromRef}..` : ''}${toRef}`],
       {
         cwd: this.path,
       },

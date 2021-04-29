@@ -1,6 +1,3 @@
-import fs from 'fs'
-import { logger } from './utils'
-
 const GIT_LFSD_SPACING = '#GIT_LFSD_SPACING#'
 const GIT_LFSD_CONSECUTIVE_ASTERISKS = '#GIT_LFSD_CONSECUTIVE_ASTERISKS#'
 const GIT_LFSD_CONSECUTIVE_ASTERISKS_TWO_SLASH =

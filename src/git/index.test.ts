@@ -58,13 +58,22 @@ test("new Git instance's path is the tempDirPath", () => {
 })
 
 test('revList', () => {
-  const revListRes = git.revListObjects('HEAD~1', 'HEAD')
-  expect(revListRes).toContainEqual({
+  const revListLast = git.revListObjects('HEAD', 'HEAD~1')
+  expect(revListLast).toContainEqual({
     filePath: 'subDir1',
     sha: '93965f67141f5e7feac490417a6a7d532fac08b1',
   })
-  expect(revListRes).toContainEqual({
+  expect(revListLast).toContainEqual({
     filePath: 'subDir1/secondFile.txt',
     sha: '624cc9ad37861936f9430af06dde76ef69764510',
+  })
+  expect(revListLast).not.toContainEqual({
+    filePath: 'firstFile.txt',
+    sha: '5b62422f2f0f9982642b9e10f735fd8d8c7a845a',
+  })
+  const revListAll = git.revListObjects('HEAD')
+  expect(revListAll).toContainEqual({
+    filePath: 'firstFile.txt',
+    sha: '5b62422f2f0f9982642b9e10f735fd8d8c7a845a',
   })
 })
