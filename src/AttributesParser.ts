@@ -3,6 +3,12 @@ import { logger } from './utils'
 
 const GIT_LFSD_SPACING = '#GIT_LFSD_SPACING#'
 const GIT_LFSD_CONSECUTIVE_ASTERISKS = '#GIT_LFSD_CONSECUTIVE_ASTERISKS#'
+const GIT_LFSD_CONSECUTIVE_ASTERISKS_TWO_SLASH =
+  '#GIT_LFSD_CONSECUTIVE_ASTERISKS_TWO_SLASH#'
+const GIT_LFSD_CONSECUTIVE_ASTERISKS_LEFT_SLASH =
+  '#GIT_LFSD_CONSECUTIVE_ASTERISKS_LEFT_SLASH#'
+const GIT_LFSD_CONSECUTIVE_ASTERISKS_RIGHT_SLASH =
+  '#GIT_LFSD_CONSECUTIVE_ASTERISKS_RIGHT_SLASH#'
 
 /** An util parser to check whether some patterns match the .gitattributes config
  *
@@ -37,23 +43,45 @@ export default class AttributesParser {
       .map(
         (line) =>
           line
+            .replace(/\/\*\*\//g, GIT_LFSD_CONSECUTIVE_ASTERISKS_TWO_SLASH)
+            .replace(/\/\*\*/g, GIT_LFSD_CONSECUTIVE_ASTERISKS_LEFT_SLASH)
+            .replace(/\*\*\//g, GIT_LFSD_CONSECUTIVE_ASTERISKS_RIGHT_SLASH)
             .replace(/\*\*/g, GIT_LFSD_CONSECUTIVE_ASTERISKS)
             .replace(/\*/g, '[^/]*')
             .replace(/\./g, '\\.')
-            .replace(new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS, 'g'), '.*')
-            .replace(/\?/g, '[^/]'), // to regexp
+            .replace(/\?/g, '[^/]')
+            .replace(
+              new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS_LEFT_SLASH, 'g'),
+              '\\/.*',
+            )
+            .replace(
+              new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS_RIGHT_SLASH, 'g'),
+              '(?:.*\\/)?',
+            )
+            .replace(
+              new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS_TWO_SLASH, 'g'),
+              '(?:(?:\\/.*\\/)|\\/)',
+            )
+            .replace(new RegExp(GIT_LFSD_CONSECUTIVE_ASTERISKS, 'g'), '[^/]*'), // to regexp
       )
-      .map((line) => new RegExp(line))
+      .map((line) => (line.startsWith('/') ? line.slice(1) : line)) // remove prefix '/', because all input represent relative path to the root
+      .map((line) => new RegExp(`^${line}$`))
   }
 
   /** rules regexp */
   rules: RegExp[]
 
   /** check whether a file path match the rules, should be the relative path to git repo root */
-  match(filePath: string) {
-    const slashFilePath = filePath.replace('\\\\', '/') // for windows, '\\' -> '/'
+  match = (filePath: string) => {
+    const slashFilePath = filePath.replace(/\\\\/g, '/') // for windows, '\\' -> '/'
     return this.rules.some(
-      (rule) => rule.test(filePath) || rule.test(slashFilePath),
+      (rule) =>
+        rule.test(filePath.startsWith('/') ? filePath.slice(1) : filePath) ||
+        rule.test(
+          slashFilePath.startsWith('/')
+            ? slashFilePath.slice(1)
+            : slashFilePath,
+        ),
     )
   }
 }
