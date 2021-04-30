@@ -25,6 +25,7 @@ export default class AttributesParser {
         line
           .replace(/\\ /g, GIT_LFSD_SPACING)
           .trim()
+          .split(' ')[0]
           .replace(new RegExp(GIT_LFSD_SPACING, 'g'), ' '),
       ) // trim trailing spaces, replace all '\ ' to a marker temporarily so that they won't be trimmed
       .filter(
