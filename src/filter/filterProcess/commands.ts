@@ -1,12 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { storeFileToLocalCache, localCachePath } from '../utils'
+import lfsd from '../../lfsd'
 import { uploadFile, downloadFile } from '../../server'
-import { VERSION } from '../../utils'
 
 export async function clean(input: Buffer): Promise<Buffer> {
   // store input to local cache
-  const { sha256, size, filePath } = storeFileToLocalCache(input)
+  const { sha256, size, filePath } = lfsd.add(input)
 
   // upload stdin to server
   // TODO: this should be done at pre-push hooks
@@ -15,36 +14,25 @@ export async function clean(input: Buffer): Promise<Buffer> {
     path.join(sha256.slice(0, 2), sha256.slice(2, 4), sha256),
   )
 
-  // write index to stdout
-  const index = `version ${VERSION}\noid sha256:${sha256}\nsize ${size}\n`
+  // write pointer to stdout
+  const pointer = lfsd.generatePointer({ sha256, size, filePath })
 
-  return Buffer.from(index)
+  return Buffer.from(pointer)
 }
 
 export async function smudge(input: Buffer): Promise<Buffer> {
-  // read index from input
-  const index = input.toString()
-  const sha256RegExecArray = /oid sha256:([a-f0-9]{64})/.exec(index)
-  if (sha256RegExecArray === null) {
-    // not standard index file format, return as it is
-    return input
-  }
-  const sha256 = sha256RegExecArray[1]
+  // read pointer from input
+  const pointer = input.toString()
 
-  const objectPath = path.join(
-    localCachePath,
-    sha256.slice(0, 2),
-    sha256.slice(2, 4),
-    sha256,
-  )
+  const { sha256, filePath } = lfsd.parsePointer(pointer)
 
-  if (fs.existsSync(objectPath)) {
+  if (fs.existsSync(filePath)) {
     // try to fetch file content from local cache
-    return fs.readFileSync(objectPath)
+    return fs.readFileSync(filePath)
   }
   // if not exists in local cache, try to fetch from server
   return downloadFile(
     path.join(sha256.slice(0, 2), sha256.slice(2, 4), sha256),
-    objectPath,
+    filePath,
   )
 }

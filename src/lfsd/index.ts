@@ -1,11 +1,11 @@
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
-import { findGitRepoRootDir, FIELD, VERSION } from '../utils'
+import { CWD, findGitRepoRootDir, FIELD, VERSION } from '../utils'
 import { LocalObject } from './types'
 
 /** a handler to operate a git LFSD repo */
-export default class LargeFileStorageDelta {
+export class LargeFileStorageDelta {
   constructor(workingPath: string) {
     this.root = findGitRepoRootDir(workingPath)
     this.localCachePath = path.join(this.root, '.git', FIELD, 'objects')
@@ -66,3 +66,5 @@ export default class LargeFileStorageDelta {
     }
   }
 }
+
+export default new LargeFileStorageDelta(CWD)
