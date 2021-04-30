@@ -1,10 +1,12 @@
+import fs from 'fs'
+import path from 'path'
 import { CWD, spawnSync, findGitRepoRootDir } from '../utils'
 import { Ref } from './types'
 import { parseRefToTypeAndName } from './utils'
 
 export class Git {
-  constructor(path: string) {
-    this.path = findGitRepoRootDir(path)
+  constructor(workingPath: string) {
+    this.path = findGitRepoRootDir(workingPath)
   }
 
   readonly path: string
@@ -73,8 +75,15 @@ export class Git {
         }
       })
   }
+
+  /** read file content of .gitattributes */
+  get attributesFileContent() {
+    const attributesFilePath = path.join(this.path, '.gitattributes')
+    if (!fs.existsSync(attributesFilePath)) {
+      return ''
+    }
+    return fs.readFileSync(attributesFilePath, 'utf-8')
+  }
 }
 
 export default new Git(CWD)
-
-const a = new Git(CWD)
