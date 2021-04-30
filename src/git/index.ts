@@ -1,15 +1,16 @@
 import fs from 'fs'
 import path from 'path'
 import { CWD, spawnSync, findGitRepoRootDir } from '../utils'
-import { Ref } from './types'
+import { Ref, RevListObject } from './types'
 import { parseRefToTypeAndName } from './utils'
 
 export class Git {
   constructor(workingPath: string) {
-    this.path = findGitRepoRootDir(workingPath)
+    this.root = findGitRepoRootDir(workingPath)
   }
 
-  readonly path: string
+  /** top level / root directory path of working tree */
+  readonly root: string
 
   /** resolve a ref name using git rev-parse */
   resolveRef = (ref: string): Ref => {
@@ -17,7 +18,7 @@ export class Git {
       'git',
       ['rev-parse', ref, '--symbolic-full-name', ref],
       {
-        cwd: this.path,
+        cwd: this.root,
       },
     )
 
@@ -50,18 +51,12 @@ export class Git {
   /** git rev-list --objects fromRef..toRef
    * if fromRef not provided, exec git rev-list --objects toRef
    */
-  revListObjects = (
-    toRef: string,
-    fromRef?: string,
-  ): {
-    sha: string
-    filePath?: string
-  }[] => {
+  revListObjects = (toRef: string, fromRef?: string): RevListObject[] => {
     const lines = spawnSync(
       'git',
       ['rev-list', '--objects', `${fromRef ? `${fromRef}..` : ''}${toRef}`],
       {
-        cwd: this.path,
+        cwd: this.root,
       },
     ).split('\n')
 
@@ -78,12 +73,20 @@ export class Git {
 
   /** read file content of .gitattributes */
   get attributesFileContent() {
-    const attributesFilePath = path.join(this.path, '.gitattributes')
+    const attributesFilePath = path.join(this.root, '.gitattributes')
     if (!fs.existsSync(attributesFilePath)) {
       return ''
     }
     return fs.readFileSync(attributesFilePath, 'utf-8')
   }
+
+  /** git cat-file -p sha1 */
+  catFile = (sha1: string) => {
+    return spawnSync('git', ['cat-file', '-p', sha1], {
+      cwd: this.root,
+    })
+  }
 }
 
+export { RevListObject }
 export default new Git(CWD)

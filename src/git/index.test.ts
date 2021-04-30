@@ -54,7 +54,7 @@ test('there is a temporary test directory and has been init by git', () => {
 })
 
 test("new Git instance's path is the tempDirPath", () => {
-  expect(git.path).toBe(tempDirPath)
+  expect(git.root).toBe(tempDirPath)
 })
 
 test('revList', () => {
