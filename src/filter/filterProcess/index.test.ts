@@ -1,10 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { absPath, spawnSync } from '../utils'
-import { Git } from './index'
+import { absPath, spawnSync } from '../../utils'
 
 function initTestDir() {
-  const tempDirPath = absPath('jest_temp/git')
+  const tempDirPath = absPath('jest_temp/filterProcess')
 
   // clear and create empty jest_temp directory for testing
   if (fs.existsSync(tempDirPath)) {
@@ -16,6 +15,15 @@ function initTestDir() {
   spawnSync('git', ['init'], { cwd: tempDirPath })
 
   // create fs structure
+
+  // create .gitattributes and track *.txt
+  spawnSync('git', ['lfsd', 'track', '*.txt'], { cwd: tempDirPath })
+
+  // # git add .gitattributes
+  spawnSync('git', ['add', '.gitattributes'], { cwd: tempDirPath })
+
+  // # git commit -m "add attributes"
+  spawnSync('git', ['commit', '-m', '"add attributes"'], { cwd: tempDirPath })
 
   // create a file firstFile.txt
   fs.writeFileSync(
@@ -46,34 +54,13 @@ function initTestDir() {
 }
 
 const tempDirPath = initTestDir()
-const git = new Git(tempDirPath)
 
-test('there is a temporary test directory and has been init by git', () => {
+test('temporary test directory has correct file structure', () => {
   expect(fs.existsSync(tempDirPath)).toBe(true)
   expect(fs.existsSync(path.join(tempDirPath, '.git'))).toBe(true)
-})
-
-test("new Git instance's path is the tempDirPath", () => {
-  expect(git.path).toBe(tempDirPath)
-})
-
-test('revList', () => {
-  const revListLast = git.revListObjects('HEAD', 'HEAD~1')
-  expect(revListLast).toContainEqual({
-    filePath: 'subDir1',
-    sha: '93965f67141f5e7feac490417a6a7d532fac08b1',
-  })
-  expect(revListLast).toContainEqual({
-    filePath: 'subDir1/secondFile.txt',
-    sha: '624cc9ad37861936f9430af06dde76ef69764510',
-  })
-  expect(revListLast).not.toContainEqual({
-    filePath: 'firstFile.txt',
-    sha: '5b62422f2f0f9982642b9e10f735fd8d8c7a845a',
-  })
-  const revListAll = git.revListObjects('HEAD')
-  expect(revListAll).toContainEqual({
-    filePath: 'firstFile.txt',
-    sha: '5b62422f2f0f9982642b9e10f735fd8d8c7a845a',
-  })
+  expect(fs.existsSync(path.join(tempDirPath, '.gitattributes'))).toBe(true)
+  expect(fs.existsSync(path.join(tempDirPath, 'firstFile.txt'))).toBe(true)
+  expect(fs.existsSync(path.join(tempDirPath, 'subDir1/secondFile.txt'))).toBe(
+    true,
+  )
 })

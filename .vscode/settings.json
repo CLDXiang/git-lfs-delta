@@ -11,4 +11,5 @@
     "LFSD",
     "gitattributes"
   ],
+  "jest.autoEnable": false,
 }

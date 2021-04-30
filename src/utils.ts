@@ -19,14 +19,14 @@ export const logger = {
   error(msg: string, exit = true) {
     console.error(`${chalk.red('error')} ${msg}`)
     if (exit) {
-      process.exit(1)
+      throw new Error(msg)
     }
   },
   /** output a warning message and exit process if necessary */
-  warn(msg: string, exit = true) {
+  warn(msg: string, exit = false) {
     console.warn(`${chalk.yellow('warn')} ${msg}`)
     if (exit) {
-      process.exit(1)
+      throw new Error(msg)
     }
   },
   /** output a success message and exit process if necessary */

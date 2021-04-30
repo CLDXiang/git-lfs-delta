@@ -19,17 +19,17 @@ export function addPath(newPath: string) {
 
   if (existingPaths.includes(newPathTrim)) {
     logger.warn(`Path "${newPathTrim}" already exists in .gitattributes`)
-  }
-
-  const contentToWrite = `${newPathTrim} filter=${FIELD} diff=${FIELD} merge=${FIELD} -text\n`
-
-  if (!fs.existsSync(attributeFilePath)) {
-    fs.writeFileSync(attributeFilePath, contentToWrite)
   } else {
-    appendFile(attributeFilePath, contentToWrite)
-  }
+    const contentToWrite = `${newPathTrim} filter=${FIELD} diff=${FIELD} merge=${FIELD} -text\n`
 
-  logger.success(`Add path "${newPathTrim}" in .gitattributes`)
+    if (!fs.existsSync(attributeFilePath)) {
+      fs.writeFileSync(attributeFilePath, contentToWrite)
+    } else {
+      appendFile(attributeFilePath, contentToWrite)
+    }
+
+    logger.success(`Add path "${newPathTrim}" in .gitattributes`)
+  }
 
   // modify global gitconfig
   cp.spawnSync(
