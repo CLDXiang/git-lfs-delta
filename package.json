@@ -7,9 +7,9 @@
     "git-lfsd": "./dist/index.js"
   },
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/index.ts",
-    "build": "tsc",
-    "local": "tsc && npm i -g .",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node --project tsconfig.build.json src/index.ts",
+    "build": "tsc --project tsconfig.build.json",
+    "local": "tsc --project tsconfig.build.json && npm i -g .",
     "lint": "eslint . --ext ts",
     "test": "jest"
   },
