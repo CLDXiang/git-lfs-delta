@@ -22,26 +22,44 @@ export class LargeFileStorageDelta {
   /** general git operator */
   readonly git: Git
 
+  /** get object local storage path from sha256 */
+  private objectPath = (sha256: string, dirOnly = false) => {
+    if (dirOnly) {
+      return path.join(
+        this.localCachePath,
+        sha256.slice(0, 2),
+        sha256.slice(2, 4),
+      )
+    }
+    return path.join(
+      this.localCachePath,
+      sha256.slice(0, 2),
+      sha256.slice(2, 4),
+      sha256,
+    )
+  }
+
   /** add object to local storage */
   add = (fileContent: Buffer): LocalObject => {
     /** file content SHA-256 */
     const sha256 = crypto.createHash('sha256').update(fileContent).digest('hex')
     const size = fileContent.byteLength
 
-    const dirPath = path.join(
-      this.localCachePath,
-      sha256.slice(0, 2),
-      sha256.slice(2, 4),
-    )
+    const dirPath = this.objectPath(sha256, true)
 
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true })
     }
 
-    const filePath = path.join(dirPath, sha256)
+    const filePath = this.objectPath(sha256)
     fs.writeFileSync(filePath, fileContent)
 
     return { sha256, size, filePath }
+  }
+
+  /** check if an object exists in local storage */
+  existsLocal = (sha256: string) => {
+    return fs.existsSync(this.objectPath(sha256))
   }
 
   /** generate pointer content of a local object */

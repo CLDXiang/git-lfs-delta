@@ -35,8 +35,8 @@ export function lsFiles(
     const pointer = lfsd.git.catFile(obj.sha)
     const { sha256, size } = lfsd.parsePointer(pointer)
     const objInfo = `${options.long ? sha256 : sha256.slice(0, 10)} ${
-      obj.filePath
-    }${options.size ? ` (${formatBytes(size)})` : ''}`
+      lfsd.existsLocal(sha256) ? '*' : '-'
+    } ${obj.filePath}${options.size ? ` (${formatBytes(size)})` : ''}`
     console.log(objInfo)
     return objInfo
   }
