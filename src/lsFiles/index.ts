@@ -48,13 +48,13 @@ export function lsFiles(
 
   const objects = (() => {
     if (refs.length === 0) {
-      return lfsd.git.revListObjects(lfsd.git.currentRef.name)
+      return lfsd.git.revListObjects([lfsd.git.currentRef.name], options.all)
     }
     if (refs.length === 1) {
-      return lfsd.git.revListObjects(refs[0])
+      return lfsd.git.revListObjects([refs[0]], options.all)
     }
     if (refs.length === 2) {
-      return lfsd.git.revListObjects(refs[1], refs[0])
+      return lfsd.git.revListObjects([refs[1], refs[0]], options.all)
     }
     throw new Error(
       `refs params number should less than three, receive: ${refs}}`,

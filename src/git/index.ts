@@ -51,10 +51,23 @@ export class Git {
   /** git rev-list --objects fromRef..toRef
    * if fromRef not provided, exec git rev-list --objects toRef
    */
-  revListObjects = (toRef: string, fromRef?: string): RevListObject[] => {
+  revListObjects = (
+    /** [toRef, fromRef?] */
+    refs: string[],
+    /** pass --all option */
+    all = false,
+  ): RevListObject[] => {
+    const [toRef, fromRef] = refs
     const lines = spawnSync(
       'git',
-      ['rev-list', '--objects', `${fromRef ? `${fromRef}..` : ''}${toRef}`],
+      all
+        ? [
+            'rev-list',
+            '--objects',
+            '--all',
+            `${fromRef ? `${fromRef}..` : ''}${toRef}`,
+          ]
+        : ['rev-list', '--objects', `${fromRef ? `${fromRef}..` : ''}${toRef}`],
       {
         cwd: this.root,
       },

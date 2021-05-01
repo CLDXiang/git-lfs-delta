@@ -95,3 +95,5 @@ test('ls-files --debug', () => {
     'filepath: subDir1/secondFile.txt\nsize: 36\ndownload: true\noid: sha256 8933cf8d075453ad9dfb807605845487b25728520903c169c45bfb6af1e6e6d8\nversion: lfsd@1\n',
   ])
 })
+
+// TODO: test 'ls-files --all'
