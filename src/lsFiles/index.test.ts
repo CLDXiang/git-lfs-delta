@@ -77,14 +77,21 @@ test('ls-files', () => {
 
 test('ls-files --long', () => {
   expect(lsFiles([], { long: true }, lfsd)).toEqual([
-    'c184237b4933cd06166677b76567d40ca0adf85d19fa1ad110ffb8a4810cd34f firstFile.txt',
-    '8933cf8d075453ad9dfb807605845487b25728520903c169c45bfb6af1e6e6d8 subDir1/secondFile.txt',
+    'c184237b4933cd06166677b76567d40ca0adf85d19fa1ad110ffb8a4810cd34f * firstFile.txt',
+    '8933cf8d075453ad9dfb807605845487b25728520903c169c45bfb6af1e6e6d8 * subDir1/secondFile.txt',
   ])
 })
 
 test('ls-files --size', () => {
   expect(lsFiles([], { size: true }, lfsd)).toEqual([
-    'c184237b49 firstFile.txt (49.0 B)',
-    '8933cf8d07 subDir1/secondFile.txt (36.0 B)',
+    'c184237b49 * firstFile.txt (49.0 B)',
+    '8933cf8d07 * subDir1/secondFile.txt (36.0 B)',
+  ])
+})
+
+test('ls-files --debug', () => {
+  expect(lsFiles([], { debug: true }, lfsd)).toEqual([
+    'filepath: firstFile.txt\nsize: 49\ndownload: true\noid: sha256 c184237b4933cd06166677b76567d40ca0adf85d19fa1ad110ffb8a4810cd34f\nversion: lfsd@1\n',
+    'filepath: subDir1/secondFile.txt\nsize: 36\ndownload: true\noid: sha256 8933cf8d075453ad9dfb807605845487b25728520903c169c45bfb6af1e6e6d8\nversion: lfsd@1\n',
   ])
 })

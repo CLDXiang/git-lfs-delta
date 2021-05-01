@@ -68,16 +68,24 @@ export class LargeFileStorageDelta {
 
   /** parse pointer content to a local object */
   parsePointer = (pointer: string) => {
+    const versionRegExecArray = /version ([A-Za-z@\d]+)/.exec(pointer)
     const sha256RegExecArray = /oid sha256:([a-f0-9]{64})/.exec(pointer)
     const sizeRegExecArray = /size (\d+)/.exec(pointer)
 
-    if (sha256RegExecArray === null || sizeRegExecArray === null) {
+    if (
+      versionRegExecArray === null ||
+      sha256RegExecArray === null ||
+      sizeRegExecArray === null
+    ) {
       throw new Error('Not a standard pointer file')
     }
+
+    const version = versionRegExecArray[1]
     const sha256 = sha256RegExecArray[1]
     const size = parseInt(sizeRegExecArray[1], 10)
 
     return {
+      version,
       sha256,
       size,
       filePath: path.join(

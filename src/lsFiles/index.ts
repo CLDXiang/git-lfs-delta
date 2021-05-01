@@ -33,10 +33,15 @@ export function lsFiles(
 
   function printObjInfo(obj: RevListObject) {
     const pointer = lfsd.git.catFile(obj.sha)
-    const { sha256, size } = lfsd.parsePointer(pointer)
-    const objInfo = `${options.long ? sha256 : sha256.slice(0, 10)} ${
-      lfsd.existsLocal(sha256) ? '*' : '-'
-    } ${obj.filePath}${options.size ? ` (${formatBytes(size)})` : ''}`
+    const { version, sha256, size } = lfsd.parsePointer(pointer)
+    const objInfo = options.debug
+      ? `filepath: ${obj.filePath}\nsize: ${size}\ndownload: ${lfsd.existsLocal(
+          sha256,
+        )}\noid: sha256 ${sha256}\nversion: ${version}\n`
+      : `${options.long ? sha256 : sha256.slice(0, 10)} ${
+          lfsd.existsLocal(sha256) ? '*' : '-'
+        } ${obj.filePath}${options.size ? ` (${formatBytes(size)})` : ''}`
+
     console.log(objInfo)
     return objInfo
   }
