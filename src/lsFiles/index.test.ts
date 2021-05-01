@@ -97,3 +97,17 @@ test('ls-files --debug', () => {
 })
 
 // TODO: test 'ls-files --all'
+
+test('ls-files --name-only', () => {
+  expect(lsFiles([], { debug: true }, lfsd)).toEqual([
+    'firstFile.txt',
+    'subDir1/secondFile.txt',
+  ])
+})
+
+test('ls-files --name-only --size', () => {
+  expect(lsFiles([], { debug: true, size: true }, lfsd)).toEqual([
+    'firstFile.txt (49.0 B)',
+    'subDir1/secondFile.txt (36.0 B)',
+  ])
+})

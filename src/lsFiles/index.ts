@@ -38,9 +38,13 @@ export function lsFiles(
       ? `filepath: ${obj.filePath}\nsize: ${size}\ndownload: ${lfsd.existsLocal(
           sha256,
         )}\noid: sha256 ${sha256}\nversion: ${version}\n`
-      : `${options.long ? sha256 : sha256.slice(0, 10)} ${
-          lfsd.existsLocal(sha256) ? '*' : '-'
-        } ${obj.filePath}${options.size ? ` (${formatBytes(size)})` : ''}`
+      : `${
+          options.nameOnly
+            ? ''
+            : `${options.long ? sha256 : sha256.slice(0, 10)} ${
+                lfsd.existsLocal(sha256) ? '*' : '-'
+              } `
+        }${obj.filePath}${options.size ? ` (${formatBytes(size)})` : ''}`
 
     console.log(objInfo)
     return objInfo
