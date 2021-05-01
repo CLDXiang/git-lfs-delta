@@ -1,9 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import { downloadFile } from '../server'
-import lfsd from '../lfsd'
+import lfsdCwd from '../lfsd'
 
-export async function smudge() {
+export async function smudge(lfsd = lfsdCwd) {
   // read pointer from working directory
   const pointer = fs.readFileSync(0, 'utf-8')
   const { sha256, filePath } = lfsd.parsePointer(pointer)

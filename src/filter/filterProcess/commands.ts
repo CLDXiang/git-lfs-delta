@@ -1,9 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import lfsd from '../../lfsd'
+import lfsdCwd from '../../lfsd'
 import { uploadFile, downloadFile } from '../../server'
 
-export async function clean(input: Buffer): Promise<Buffer> {
+export async function clean(input: Buffer, lfsd = lfsdCwd): Promise<Buffer> {
   // store input to local cache
   const { sha256, size, filePath } = lfsd.add(input)
 
@@ -20,7 +20,7 @@ export async function clean(input: Buffer): Promise<Buffer> {
   return Buffer.from(pointer)
 }
 
-export async function smudge(input: Buffer): Promise<Buffer> {
+export async function smudge(input: Buffer, lfsd = lfsdCwd): Promise<Buffer> {
   // read pointer from input
   const pointer = input.toString()
 

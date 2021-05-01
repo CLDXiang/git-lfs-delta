@@ -1,9 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import lfsd from '../lfsd'
+import lfsdCwd from '../lfsd'
 import { uploadFile } from '../server'
 
-export async function clean() {
+export async function clean(lfsd = lfsdCwd) {
   /** stdin */
   const stdin = fs.readFileSync(0)
 

@@ -1,5 +1,6 @@
 import { preZero } from './utils'
 import { clean, smudge } from './commands'
+import lfsdCwd from '../../lfsd'
 
 const MAX_PACKET_CONTENT_SIZE = 65516
 
@@ -7,7 +8,7 @@ const MAX_PACKET_CONTENT_SIZE = 65516
  *
  * to debug, set environment variable GIT_TRACE_PACKET = 1
  */
-export async function filterProcess() {
+export async function filterProcess(lfsd = lfsdCwd) {
   /** all packet line buffers  */
   const packetBuffers: Buffer[] = []
 
@@ -175,9 +176,9 @@ export async function filterProcess() {
     if (['clean', 'smudge'].includes(command)) {
       // filter input into output
       if (command === 'clean') {
-        output = await clean(input)
+        output = await clean(input, lfsd)
       } else if (command === 'smudge') {
-        output = await smudge(input)
+        output = await smudge(input, lfsd)
       }
     } else {
       throw new Error(`bad command ${command}`)
