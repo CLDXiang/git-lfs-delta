@@ -113,3 +113,18 @@ export function findGitRepoRootDir(dir = CWD): string {
     }).trim(),
   )
 }
+
+/** format bytes number to string with unit */
+export function formatBytes(bytes: number) {
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+
+  if (bytes < 0) {
+    return 'N/A'
+  }
+
+  const pow = Math.floor(Math.log(bytes) / Math.log(1024))
+
+  const size = Math.min(pow, sizes.length - 1)
+
+  return `${(bytes / 1024 ** size).toFixed(1)} ${sizes[size]}`
+}
