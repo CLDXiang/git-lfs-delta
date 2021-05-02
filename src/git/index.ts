@@ -48,8 +48,43 @@ export class Git {
     return this.resolveRef('HEAD')
   }
 
+  /** parse absRef and sha to Ref object */
+  parseRef = (absRef: string, sha: string) => {
+    const ref: Ref = {
+      name: '',
+      type: 'other',
+      sha,
+    }
+    if (absRef.startsWith('refs/heads/')) {
+      ref.name = absRef.slice(11)
+      ref.type = 'localBranch'
+    } else if (absRef.startsWith('refs/tags')) {
+      ref.name = absRef.slice(10)
+      ref.type = 'localTag'
+    } else if (absRef.startsWith('refs/remotes/')) {
+      ref.name = absRef.slice(13)
+      ref.type = 'remoteBranch'
+    } else {
+      ref.name = absRef
+      ref.type = absRef === 'HEAD' ? 'HEAD' : 'other'
+    }
+    return ref
+  }
+
+  /** returns true if the string is a valid hexadecimal Git object ID and represents the all-zeros object ID for some hash algorithm. */
+  isZeroObjectID = (s: string) => {
+    return (
+      s === '0000000000000000000000000000000000000000' ||
+      '0000000000000000000000000000000000000000000000000000000000000000'
+    )
+  }
+
   /** git rev-list --objects fromRef..toRef
+   *
    * if fromRef not provided, exec git rev-list --objects toRef
+   *
+   * @param refs [toRef, fromRef?]
+   * @param all pass --all option
    */
   revListObjects = (
     /** [toRef, fromRef?] */
@@ -101,5 +136,5 @@ export class Git {
   }
 }
 
-export { RevListObject }
+export { RevListObject, Ref }
 export default new Git(CWD)

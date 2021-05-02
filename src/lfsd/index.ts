@@ -23,7 +23,7 @@ export class LargeFileStorageDelta {
   readonly git: Git
 
   /** get object local storage path from sha256 */
-  private objectPath = (sha256: string, dirOnly = false) => {
+  objectPath = (sha256: string, dirOnly = false) => {
     if (dirOnly) {
       return path.join(
         this.localCachePath,

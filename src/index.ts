@@ -60,8 +60,8 @@ program.command('post-merge', { hidden: true }).action(() => {
   // console.log('post-merge')
 })
 
-program.command('pre-push <args...>', { hidden: true }).action((args) => {
-  prePush(args)
+program.command('pre-push <args...>', { hidden: true }).action(async (args) => {
+  await prePush(args)
 })
 
 // filter

@@ -38,3 +38,8 @@ export async function downloadFile(
 
   process.exit(1)
 }
+
+export async function checkNotExist(serverPaths: string[]): Promise<string[]> {
+  const resp = await API.post<string[]>('not-exist', { paths: serverPaths })
+  return resp.data
+}
