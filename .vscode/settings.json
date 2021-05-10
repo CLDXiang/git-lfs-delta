@@ -8,8 +8,10 @@
     "source.fixAll.eslint": true
   },
   "cSpell.words": [
+    "Hdrs",
     "LFSD",
-    "gitattributes"
+    "gitattributes",
+    "xdelta"
   ],
   "jest.autoEnable": false,
 }

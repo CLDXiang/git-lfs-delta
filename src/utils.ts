@@ -1,5 +1,4 @@
 import axios from 'axios'
-import fs from 'fs'
 import chalk from 'chalk'
 import path from 'path'
 import cp from 'child_process'
@@ -68,7 +67,7 @@ export function spawnSync(
   command: string,
   args?: readonly string[],
   options?: cp.SpawnSyncOptionsWithBufferEncoding,
-): string {
+): Buffer {
   const res = cp.spawnSync(command, args, options)
   const commandString = `${command} ${args?.join(' ')}`
   if (res.status === null) {
@@ -88,7 +87,7 @@ export function spawnSync(
     logger.error(`$ ${commandString} - ${res.stderr.toString()}`)
   }
   // return STDOUT as string
-  return res.stdout.toString()
+  return res.stdout
 }
 
 /** find the root directory of a git repo */
@@ -110,7 +109,9 @@ export function findGitRepoRootDir(dir = CWD): string {
   return path.normalize(
     spawnSync('git', ['rev-parse', '--show-toplevel'], {
       cwd: dir,
-    }).trim(),
+    })
+      .toString()
+      .trim(),
   )
 }
 

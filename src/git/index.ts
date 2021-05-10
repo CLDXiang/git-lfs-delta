@@ -20,7 +20,7 @@ export class Git {
       {
         cwd: this.root,
       },
-    )
+    ).toString()
 
     const lines = output.split('\n')
 
@@ -106,7 +106,9 @@ export class Git {
       {
         cwd: this.root,
       },
-    ).split('\n')
+    )
+      .toString()
+      .split('\n')
 
     return lines
       .filter((line) => line.trim())
