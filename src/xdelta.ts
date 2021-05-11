@@ -31,7 +31,7 @@ type Options = Partial<{
   A: string
 }>
 
-class XDelta {
+export class XDelta {
   constructor(workingPath: string, cmd = 'xdelta3') {
     this.workingPath = workingPath
     this.cmd = cmd
@@ -46,7 +46,7 @@ class XDelta {
   }
 
   /** working path */
-  private workingPath: string
+  workingPath: string
 
   /** command name / executable path */
   private cmd: string
@@ -140,9 +140,10 @@ class XDelta {
   ) => {
     return spawnSync(
       this.cmd,
-      ['-s', sourceFilePath, targetFilePath, ...this.parseOptions(options)],
+      [...this.parseOptions(options), '-s', sourceFilePath, targetFilePath],
       {
         cwd: this.workingPath,
+        stdio: 'pipe',
       },
     )
   }
@@ -155,14 +156,15 @@ class XDelta {
     return spawnSync(
       this.cmd,
       [
+        ...this.parseOptions(options),
         '-d',
         '-s',
         sourceFilePath,
         deltaFilePath,
-        ...this.parseOptions(options),
       ],
       {
         cwd: this.workingPath,
+        stdio: 'pipe',
       },
     )
   }
