@@ -77,3 +77,16 @@ test('revList', () => {
     sha: '5b62422f2f0f9982642b9e10f735fd8d8c7a845a',
   })
 })
+
+test('show file content', () => {
+  expect(git.showFileContent('subDir1/secondFile.txt')).toBe(
+    'This is all content in second file.\n',
+  )
+  expect(git.showFileContent('fileNoExists')).toBe('')
+
+  expect(git.showFileContent('subDir1/secondFile.txt', 'HEAD~1')).toBe('')
+
+  expect(git.showFileContent('firstFile.txt', 'HEAD~1')).toBe(
+    'this is the first line.\nthis is the second line.\n',
+  )
+})

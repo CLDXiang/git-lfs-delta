@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import cp from 'child_process'
 import { CWD, spawnSync, findGitRepoRootDir } from '../utils'
 import { Ref, RevListObject } from './types'
 import { parseRefToTypeAndName } from './utils'
@@ -121,6 +122,23 @@ export class Git {
       })
   }
 
+  /** git show `ref`:`filePath` */
+  showFileContent = (filePath: string, ref = 'HEAD') => {
+    const res = cp.spawnSync('git', ['show', `${ref}:${filePath}`], {
+      cwd: this.root,
+    })
+    if (res.status !== 0) {
+      // receive stderr from git, most possibly no such path in the ref
+      return ''
+    }
+    // if it's tree object, return as if it's a empty blob object
+    if (res.stdout.toString().startsWith(`tree ${ref}:${filePath}\n\n`)) {
+      return ''
+    }
+    // return file content
+    return res.stdout.toString()
+  }
+
   /** read file content of .gitattributes */
   get attributesFileContent() {
     const attributesFilePath = path.join(this.root, '.gitattributes')
@@ -134,7 +152,7 @@ export class Git {
   catFile = (sha1: string) => {
     return spawnSync('git', ['cat-file', '-p', sha1], {
       cwd: this.root,
-    })
+    }).toString()
   }
 }
 
