@@ -129,14 +129,14 @@ export class Git {
     })
     if (res.status !== 0) {
       // receive stderr from git, most possibly no such path in the ref
-      return ''
+      return null
     }
     // if it's tree object, return as if it's a empty blob object
     if (res.stdout.toString().startsWith(`tree ${ref}:${filePath}\n\n`)) {
-      return ''
+      return null
     }
     // return file content
-    return res.stdout.toString()
+    return res.stdout
   }
 
   /** read file content of .gitattributes */

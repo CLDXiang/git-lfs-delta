@@ -79,14 +79,14 @@ test('revList', () => {
 })
 
 test('show file content', () => {
-  expect(git.showFileContent('subDir1/secondFile.txt')).toBe(
+  expect(git.showFileContent('subDir1/secondFile.txt')?.toString()).toBe(
     'This is all content in second file.\n',
   )
-  expect(git.showFileContent('fileNoExists')).toBe('')
+  expect(git.showFileContent('fileNoExists')).toBe(null)
 
-  expect(git.showFileContent('subDir1/secondFile.txt', 'HEAD~1')).toBe('')
+  expect(git.showFileContent('subDir1/secondFile.txt', 'HEAD~1')).toBe(null)
 
-  expect(git.showFileContent('firstFile.txt', 'HEAD~1')).toBe(
+  expect(git.showFileContent('firstFile.txt', 'HEAD~1')?.toString()).toBe(
     'this is the first line.\nthis is the second line.\n',
   )
 })

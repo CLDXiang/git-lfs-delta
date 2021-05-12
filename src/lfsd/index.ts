@@ -4,13 +4,16 @@ import path from 'path'
 import { CWD, findGitRepoRootDir, FIELD, VERSION } from '../utils'
 import { LocalObject } from './types'
 import { Git } from '../git'
+import { XDelta } from '../xdelta'
 
 /** a handler to operate a git LFSD repo */
 export class LargeFileStorageDelta {
   constructor(workingPath: string) {
     this.root = findGitRepoRootDir(workingPath)
     this.localCachePath = path.join(this.root, '.git', FIELD, 'objects')
+    this.tempPath = path.join(this.root, '.git', FIELD, 'temp')
     this.git = new Git(workingPath)
+    this.xdelta = new XDelta(workingPath)
   }
 
   /** top level / root directory path of working tree */
@@ -19,8 +22,29 @@ export class LargeFileStorageDelta {
   /** directory path where to store local storage objects */
   readonly localCachePath: string
 
+  /** directory path where to store temporary files */
+  readonly tempPath: string
+
   /** general git operator */
   readonly git: Git
+
+  /** xdelta instance */
+  readonly xdelta: XDelta
+
+  /** create a temporary file */
+  addTempFile = (fileName: string, fileContent: Buffer) => {
+    if (!fs.existsSync(this.tempPath)) {
+      fs.mkdirSync(this.tempPath, { recursive: true })
+    }
+    const filePath = path.join(this.tempPath, fileName)
+    fs.writeFileSync(filePath, fileContent)
+    return filePath
+  }
+
+  /** clear temporary file directory */
+  clearTempFiles = () => {
+    fs.rmdirSync(this.tempPath, { recursive: true })
+  }
 
   /** get object local storage path from sha256 */
   objectPath = (sha256: string, dirOnly = false) => {

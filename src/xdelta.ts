@@ -143,7 +143,6 @@ export class XDelta {
       [...this.parseOptions(options), '-s', sourceFilePath, targetFilePath],
       {
         cwd: this.workingPath,
-        stdio: 'pipe',
       },
     )
   }
@@ -164,7 +163,6 @@ export class XDelta {
       ],
       {
         cwd: this.workingPath,
-        stdio: 'pipe',
       },
     )
   }
