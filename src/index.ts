@@ -68,13 +68,13 @@ program.command('pre-push <args...>', { hidden: true }).action(async (args) => {
 program
   .command('clean <file>', { hidden: true })
   .action(async (file: string) => {
-    await clean()
+    await clean(file)
   })
 
 program
   .command('smudge <file>', { hidden: true })
   .action(async (file: string) => {
-    await smudge()
+    await smudge(file)
   })
 
 program.command('filter-process', { hidden: true }).action(async () => {

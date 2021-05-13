@@ -1,10 +1,14 @@
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
-import { CWD, findGitRepoRootDir, FIELD, VERSION } from '../utils'
+import { CWD, findGitRepoRootDir, FIELD, VERSION, logger } from '../utils'
 import { LocalObject } from './types'
 import { Git } from '../git'
 import { XDelta } from '../xdelta'
+import { downloadFile } from '../server'
+
+const ZERO_SHA256 =
+  '0000000000000000000000000000000000000000000000000000000000000000'
 
 /** a handler to operate a git LFSD repo */
 export class LargeFileStorageDelta {
@@ -30,6 +34,40 @@ export class LargeFileStorageDelta {
 
   /** xdelta instance */
   readonly xdelta: XDelta
+
+  /** write a file to local storage and add a source pointer in its head */
+  writeObject = (
+    filePath: string,
+    fileContent: Buffer,
+    pointer = ZERO_SHA256,
+  ) => {
+    fs.writeFileSync(
+      filePath,
+      Buffer.concat([Buffer.from(`S ${pointer}\n`, 'utf-8'), fileContent]),
+    )
+  }
+
+  /** read a LFSD object, return its real content and source pointer separately */
+  parseObject = (objectBuffer: Buffer) => {
+    /** find first \n */
+    const firstNewlineIndex = objectBuffer.findIndex((val) => val === 10)
+
+    // split out first line
+    const sourcePointerLine = objectBuffer
+      .slice(0, firstNewlineIndex)
+      .toString()
+
+    if (!/^S \d{64}$/.test(sourcePointerLine)) {
+      throw new Error(
+        'LFSD: Bad object file format! No source pointer at the beginning!',
+      )
+    }
+
+    return {
+      sourceOid: sourcePointerLine.slice(2),
+      fileContent: objectBuffer.slice(firstNewlineIndex + 1),
+    }
+  }
 
   /** create a temporary file */
   addTempFile = (fileName: string, fileContent: Buffer) => {
@@ -64,21 +102,74 @@ export class LargeFileStorageDelta {
   }
 
   /** add object to local storage */
-  add = (fileContent: Buffer): LocalObject => {
+  add = (fileContent: Buffer, filePath: string): LocalObject => {
     /** file content SHA-256 */
     const sha256 = crypto.createHash('sha256').update(fileContent).digest('hex')
     const size = fileContent.byteLength
-
     const dirPath = this.objectPath(sha256, true)
-
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true })
     }
+    const storageFilePath = this.objectPath(sha256)
 
-    const filePath = this.objectPath(sha256)
-    fs.writeFileSync(filePath, fileContent)
+    /** file content in last commit */
+    const lastCommittedPointer = this.git.showFileContent(filePath, 'HEAD~1')
+    if (lastCommittedPointer === null) {
+      // if no last commit version, store as it is and give a zero pointer
+      this.writeObject(storageFilePath, fileContent)
+    } else {
+      const {} = this.parsePointer(lastCommittedPointer)
 
-    return { sha256, size, filePath }
+      // if last commit version exists, try to compress it with Xdelta, implementation here may cause I/O and disk space problem, better implement a XDelta handler with Buffer type input
+      
+
+      // if size of delta > size of last commit version, use last commit version it self
+    }
+
+    return { sha256, size, filePath: storageFilePath }
+  }
+
+  /** get a raw LFSD object by its oid(sha256)
+   *
+   * this will try to find the object in LFSD local storage, if it does not exists in local storage,
+   * will try to download it from remote server and store it in local storage
+   *
+   * this method won't try to decompress a delta pointer, but return its raw content
+   *
+   * @param sha256 - oid
+   * @param pathOnly - return object path in local storage but not file content Buffer
+   */
+  getRawObjectByOid = async (sha256: string, pathOnly = false) => {
+    const localStorageFilePath = this.objectPath(sha256)
+    if (fs.existsSync(localStorageFilePath)) {
+      // if exists in local storage, return it
+      if (pathOnly) {
+        return localStorageFilePath
+      }
+      return fs.readFileSync(localStorageFilePath)
+    }
+
+    // if not exists in local storage, try to fetch from remote server
+    const fileContent = await downloadFile(
+      this.objectPath(sha256, true),
+      localStorageFilePath,
+    )
+    if (pathOnly) {
+      return localStorageFilePath
+    }
+    return fileContent
+  }
+
+  /** get a LFSD object by its oid(sha256), with decompressing delta pointer, the returned object won't include any source pointer */
+  getObjectByOid = async (sha256: string) => {
+    const sourceOid = ZERO_SHA256
+
+    const obj = Buffer.from('', 'utf-8')
+
+    // TODO: 从输入 oid 指向的 delta 一直找到 zero obj，记录下这个过程中的所有 oid，倒过来一个一个 decompress 还原
+    do {
+      //
+    } while (sourceOid !== ZERO_SHA256)
   }
 
   /** check if an object exists in local storage */
