@@ -5,6 +5,10 @@ import { CWD, findGitRepoRootDir, FIELD, VERSION } from '../utils'
 import { LocalObject } from './types'
 import { Git } from '../git'
 import { XDelta } from '../xdelta'
+import { downloadFile } from '../server'
+
+const ZERO_SHA256 =
+  '0000000000000000000000000000000000000000000000000000000000000000'
 
 /** a handler to operate a git LFSD repo */
 export class LargeFileStorageDelta {
@@ -31,15 +35,57 @@ export class LargeFileStorageDelta {
   /** xdelta instance */
   readonly xdelta: XDelta
 
+  /** write a file to local storage and add a source pointer in its head */
+  writeObject = (
+    filePath: string,
+    fileContent: Buffer,
+    pointer = ZERO_SHA256,
+  ) => {
+    fs.writeFileSync(
+      filePath,
+      Buffer.concat([Buffer.from(`S ${pointer}\n`, 'utf-8'), fileContent]),
+    )
+  }
+
+  /** read a LFSD object, return its real content and source pointer separately */
+  parseObject = (objectBuffer: Buffer) => {
+    /** find first \n */
+    const firstNewlineIndex = objectBuffer.findIndex((val) => val === 10)
+
+    // split out first line
+    const sourcePointerLine = objectBuffer
+      .slice(0, firstNewlineIndex)
+      .toString()
+
+    if (!/^S \d{64}$/.test(sourcePointerLine)) {
+      throw new Error(
+        'LFSD: Bad object file format! No source pointer at the beginning!',
+      )
+    }
+
+    return {
+      sourceOid: sourcePointerLine.slice(2),
+      fileContent: objectBuffer.slice(firstNewlineIndex + 1),
+    }
+  }
+
   /** create a temporary file */
   addTempFile = (fileName: string, fileContent: Buffer) => {
     if (!fs.existsSync(this.tempPath)) {
       fs.mkdirSync(this.tempPath, { recursive: true })
     }
-    const filePath = path.join(this.tempPath, fileName)
+    const filePath = this.pathOfTempFile(fileName)
     fs.writeFileSync(filePath, fileContent)
     return filePath
   }
+
+  /** read a temporary file */
+  readTempFile = (fileName: string): Buffer => {
+    return fs.readFileSync(this.pathOfTempFile(fileName))
+  }
+
+  /** get abs path of a temp file by its name */
+  pathOfTempFile = (fileName: string) => path.join(this.tempPath, fileName)
 
   /** clear temporary file directory */
   clearTempFiles = () => {
@@ -79,6 +125,91 @@ export class LargeFileStorageDelta {
     fs.writeFileSync(filePath, fileContent)
 
     return { sha256, size, filePath }
+  }
+
+  /** get a raw LFSD object by its oid(sha256)
+   *
+   * this will try to find the object in LFSD local storage, if it does not exists in local storage,
+   * will try to download it from remote server and store it in local storage
+   *
+   * this method won't try to decompress a delta pointer, but return its raw content
+   *
+   * @param sha256 - oid
+   * @param pathOnly - return object path in local storage but not file content Buffer
+   */
+  getRawObjectByOid = async (sha256: string, pathOnly = false) => {
+    const localStorageFilePath = this.objectPath(sha256)
+    if (fs.existsSync(localStorageFilePath)) {
+      // if exists in local storage, return it
+      if (pathOnly) {
+        return localStorageFilePath
+      }
+      return fs.readFileSync(localStorageFilePath)
+    }
+
+    // if not exists in local storage, try to fetch from remote server
+    const fileContent = await downloadFile(
+      this.objectPath(sha256, true),
+      localStorageFilePath,
+    )
+    if (pathOnly) {
+      return localStorageFilePath
+    }
+    return fileContent
+  }
+
+  /** get a LFSD object by its oid(sha256), with decompressing delta pointer, the returned object won't include any source pointer */
+  getObjectByOid = async (sha256: string) => {
+    this.clearTempFiles()
+
+    let currentOid = sha256
+    const pointerList = []
+
+    // record all objects oid from current object to its source object, and store relative objects to temp dir without source pointer line
+    while (currentOid !== ZERO_SHA256) {
+      // get current object
+      // eslint-disable-next-line no-await-in-loop
+      const rawFileContent = (await this.getRawObjectByOid(
+        currentOid,
+      )) as Buffer
+
+      // parse its source pointer and file content
+      const { sourceOid, fileContent } = this.parseObject(rawFileContent)
+
+      // store real file content into temp directory, use oid as file name
+      this.addTempFile(currentOid, fileContent)
+
+      // record currentOid into pointerList
+      pointerList.push(currentOid)
+
+      // update currentOid
+      currentOid = sourceOid
+    }
+
+    // decompress from source to input object one by one
+    const sourceOid = pointerList.pop()
+    if (!sourceOid) {
+      throw new Error('LFSD: unexpected empty pointerList')
+    }
+
+    // copy source object as base of target
+    this.addTempFile('target', this.readTempFile(sourceOid))
+    while (pointerList.length) {
+      const deltaOid = pointerList.pop() as string
+
+      this.addTempFile(
+        'target',
+        this.xdelta.decompress(
+          this.pathOfTempFile('target'),
+          this.pathOfTempFile(deltaOid),
+        ),
+      )
+    }
+
+    const finalContent = this.readTempFile('target')
+
+    this.clearTempFiles()
+    return finalContent
   }
 
   /** check if an object exists in local storage */
