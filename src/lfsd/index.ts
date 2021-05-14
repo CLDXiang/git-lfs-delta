@@ -110,21 +110,49 @@ export class LargeFileStorageDelta {
   }
 
   /** add object to local storage */
-  add = (fileContent: Buffer): LocalObject => {
+  add = async (fileContent: Buffer, filePath: string): Promise<LocalObject> => {
     /** file content SHA-256 */
     const sha256 = crypto.createHash('sha256').update(fileContent).digest('hex')
     const size = fileContent.byteLength
-
     const dirPath = this.objectPath(sha256, true)
-
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true })
     }
+    const storageFilePath = this.objectPath(sha256)
 
-    const filePath = this.objectPath(sha256)
-    fs.writeFileSync(filePath, fileContent)
+    /** file content in last commit */
+    const lastCommittedPointer = this.git.showFileContent(filePath, 'HEAD~1')
+    if (lastCommittedPointer === null) {
+      // if no last commit version, store as it is and give a zero pointer
+      this.writeObject(storageFilePath, fileContent)
+    } else {
+      // if last commit version exists, try to compress it with Xdelta, implementation here may cause I/O and disk space problem, better implement a XDelta handler with Buffer type input
+      const { sha256: lastCommittedOid } = this.parsePointer(
+        lastCommittedPointer.toString(),
+      )
 
-    return { sha256, size, filePath }
+      this.clearTempFiles()
+      // input file
+      const sourcePath = this.addTempFile('source', fileContent)
+
+      const lastCommittedObject = await this.getObjectByOid(lastCommittedOid)
+      // target file
+      const targetPath = this.addTempFile('target', lastCommittedObject)
+
+      // compress
+      const delta = this.xdelta.compress(sourcePath, targetPath)
+
+      // store new source
+      this.writeObject(storageFilePath, fileContent)
+
+      if (delta.byteLength < lastCommittedObject.byteLength) {
+        // if size of delta >= size of last commit version, use last commit version it self
+        // replace last commit version as a new delta, pointer to new source
+        this.writeObject(this.objectPath(lastCommittedOid), delta, sha256)
+      }
+    }
+
+    return { sha256, size, filePath: storageFilePath }
   }
 
   /** get a raw LFSD object by its oid(sha256)
