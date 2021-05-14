@@ -70,8 +70,8 @@ test('temporary test directory has correct file structure', () => {
 
 test('ls-files', () => {
   expect(lsFiles([], {}, lfsd)).toEqual([
-    'c184237b49 firstFile.txt',
-    '8933cf8d07 subDir1/secondFile.txt',
+    'c184237b49 * firstFile.txt',
+    '8933cf8d07 * subDir1/secondFile.txt',
   ])
 })
 
@@ -99,14 +99,14 @@ test('ls-files --debug', () => {
 // TODO: test 'ls-files --all'
 
 test('ls-files --name-only', () => {
-  expect(lsFiles([], { debug: true }, lfsd)).toEqual([
+  expect(lsFiles([], { nameOnly: true }, lfsd)).toEqual([
     'firstFile.txt',
     'subDir1/secondFile.txt',
   ])
 })
 
 test('ls-files --name-only --size', () => {
-  expect(lsFiles([], { debug: true, size: true }, lfsd)).toEqual([
+  expect(lsFiles([], { size: true, nameOnly: true }, lfsd)).toEqual([
     'firstFile.txt (49.0 B)',
     'subDir1/secondFile.txt (36.0 B)',
   ])

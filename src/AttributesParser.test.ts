@@ -10,7 +10,7 @@ test('the init creates correct rules', () => {
 # This is a comment in a .gitignore file!
 /somethingInRoot
 
-  backslash space in the end should not be trimmed\\ 
+  backslash\\ space should not be trimmed\\ 
 
 *.ext
 
@@ -36,7 +36,7 @@ foo/**
   `).rules,
   ).toEqual([
     /^somethingInRoot$/,
-    /^(?:.*\/)?backslash space in the end should not be trimmed $/,
+    /^(?:.*\/)?backslash space$/,
     /^(?:.*\/)?[^/]*\.ext$/,
     /^foo\/[^/]*\.bar$/,
     /^(?:.*\/)?foo\/[^/]*\.bar$/,

@@ -1,7 +1,7 @@
-import fs from 'fs'
-import path from 'path'
+// import fs from 'fs'
+// import path from 'path'
 import lfsdCwd from '../../lfsd'
-import { downloadFile } from '../../server'
+// import { downloadFile } from '../../server'
 
 export async function clean(
   input: Buffer,
