@@ -35,6 +35,8 @@ export class LargeFileStorageDelta {
   /** xdelta instance */
   readonly xdelta: XDelta
 
+  /** search oid by its prefix, only support local storage search */
+
   /** write a file to local storage and add a source pointer in its head */
   writeObject = (
     filePath: string,
@@ -177,7 +179,7 @@ export class LargeFileStorageDelta {
 
     // if not exists in local storage, try to fetch from remote server
     const fileContent = await downloadFile(
-      this.objectPath(sha256, true),
+      path.join(sha256.slice(0, 2), sha256.slice(2, 4), sha256),
       localStorageFilePath,
     )
     if (pathOnly) {
@@ -271,12 +273,7 @@ export class LargeFileStorageDelta {
       version,
       sha256,
       size,
-      filePath: path.join(
-        this.localCachePath,
-        sha256.slice(0, 2),
-        sha256.slice(2, 4),
-        sha256,
-      ),
+      filePath: this.objectPath(sha256),
     }
   }
 }

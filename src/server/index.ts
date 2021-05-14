@@ -43,3 +43,8 @@ export async function checkNotExist(serverPaths: string[]): Promise<string[]> {
   const resp = await API.post<string[]>('not-exist', { paths: serverPaths })
   return resp.data
 }
+
+export async function searchOid(prefix: string): Promise<string[]> {
+  const resp = await API.get<string[]>(`search-oid?prefix=${prefix}`)
+  return resp.data
+}

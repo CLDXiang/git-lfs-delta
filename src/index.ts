@@ -5,6 +5,7 @@ import { viewPaths, addPath } from './track'
 import { lsFiles } from './lsFiles'
 import { clean, filterProcess, smudge } from './filter'
 import { prePush } from './hooks'
+import { catObject } from './catObject'
 
 const program = createCommand()
 
@@ -45,6 +46,16 @@ program
   .option('-n, --name-only', 'Show only the lfs tracked file names.')
   .action((refs, options) => {
     lsFiles(refs, options)
+  })
+
+// cat-object
+program
+  .command('cat-object <oid>')
+  .description(
+    'Output an LFSD object content by input an oid prefix with at least 6 characters.',
+  )
+  .action((oid) => {
+    catObject(oid)
   })
 
 // hooks

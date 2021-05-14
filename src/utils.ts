@@ -15,17 +15,23 @@ export const VERSION = `${FIELD}@1`
 /** logger and process control */
 export const logger = {
   /** output a error message and exit process if necessary */
-  error(msg: string, exit = true) {
+  error(msg: string, stderr = true, exit = 1) {
     console.error(`${chalk.red('error')} ${msg}`)
-    if (exit) {
+    if (stderr) {
       throw new Error(msg)
+    }
+    if (exit) {
+      process.exit(exit)
     }
   },
   /** output a warning message and exit process if necessary */
-  warn(msg: string, exit = false) {
+  warn(msg: string, stderr = true, exit = 1) {
     console.warn(`${chalk.yellow('warn')} ${msg}`)
-    if (exit) {
+    if (stderr) {
       throw new Error(msg)
+    }
+    if (exit) {
+      process.exit(1)
     }
   },
   /** output a success message and exit process if necessary */
