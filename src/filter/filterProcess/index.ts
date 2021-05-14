@@ -176,7 +176,7 @@ export async function filterProcess(lfsd = lfsdCwd) {
     if (['clean', 'smudge'].includes(command)) {
       // filter input into output
       if (command === 'clean') {
-        output = await clean(input, lfsd)
+        output = await clean(input, pathname, lfsd)
       } else if (command === 'smudge') {
         output = await smudge(input, lfsd)
       }
