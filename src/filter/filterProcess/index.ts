@@ -8,7 +8,6 @@ class FilterProcessor {
   constructor(lfsd = lfsdCwd) {
     this.lfsd = lfsd
     this.status = 'init'
-    this.run()
   }
 
   /** LFSD instance */
@@ -23,7 +22,6 @@ class FilterProcessor {
     | 'waitingPathname'
     | 'waitingContentStart'
     | 'reading'
-    | 'end'
 
   /** current command */
   private command = ''
@@ -37,19 +35,7 @@ class FilterProcessor {
   /** all packet line buffers  */
   private packetBuffers: Buffer[] = []
 
-  /** start running */
-  private run = () => {
-    while (this.status !== 'end') {
-      this.readPacket()
-    }
-  }
-
-  /** stop running */
-  stop = () => {
-    this.status = 'end'
-  }
-
-  /** process a complete chunk, read each line according to its size and push it into packetBuffers */
+  /** process a complete chunk, read each line according to its size and push it into packetBuffers, then process all packetBuffers */
   readChunk = (chunk: Buffer) => {
     /** how many bytes processed */
     let offset = 0
@@ -82,6 +68,10 @@ class FilterProcessor {
       } else {
         throw new Error(`invalid packet size: ${packetSize}`)
       }
+    }
+
+    while (this.packetBuffers.length) {
+      this.readPacket()
     }
   }
 
@@ -268,10 +258,6 @@ export async function filterProcess(lfsd = lfsdCwd) {
 
   process.stdin.on('data', (chunk) => {
     filterProcessor.readChunk(chunk)
-  })
-
-  process.stdin.on('end', () => {
-    filterProcessor.stop()
   })
 
   process.stdin.on('error', (err) => {
