@@ -72,26 +72,32 @@ export class LargeFileStorageDelta {
   }
 
   /** create a temporary file */
-  addTempFile = (fileName: string, fileContent: Buffer) => {
-    if (!fs.existsSync(this.tempPath)) {
-      fs.mkdirSync(this.tempPath, { recursive: true })
+  addTempFile = (field: string, fileName: string, fileContent: Buffer) => {
+    const subDirPath = path.join(this.tempPath, field)
+    if (!fs.existsSync(subDirPath)) {
+      fs.mkdirSync(subDirPath, { recursive: true })
     }
-    const filePath = this.pathOfTempFile(fileName)
+    const filePath = this.pathOfTempFile(field, fileName)
     fs.writeFileSync(filePath, fileContent)
     return filePath
   }
 
   /** read a temporary file */
-  readTempFile = (fileName: string): Buffer => {
-    return fs.readFileSync(this.pathOfTempFile(fileName))
+  readTempFile = (field: string, fileName: string): Buffer => {
+    return fs.readFileSync(this.pathOfTempFile(field, fileName))
   }
 
   /** get abs path of a temp file by its name */
-  pathOfTempFile = (fileName: string) => path.join(this.tempPath, fileName)
+  pathOfTempFile = (field: string, fileName: string) =>
+    path.join(this.tempPath, field, fileName)
 
   /** clear temporary file directory */
-  clearTempFiles = () => {
-    fs.rmdirSync(this.tempPath, { recursive: true })
+  clearTempFiles = (field?: string) => {
+    if (!field) {
+      fs.rmdirSync(this.tempPath, { recursive: true })
+    } else {
+      fs.rmdirSync(path.join(this.tempPath, field), { recursive: true })
+    }
   }
 
   /** get object local storage path from sha256 */
@@ -123,7 +129,7 @@ export class LargeFileStorageDelta {
     const storageFilePath = this.objectPath(sha256)
 
     /** file content in last commit */
-    const lastCommittedPointer = this.git.showFileContent(filePath, 'HEAD~1')
+    const lastCommittedPointer = this.git.showFileContent(filePath)
     if (lastCommittedPointer === null) {
       // if no last commit version, store as it is and give a zero pointer
       this.writeObject(storageFilePath, fileContent)
@@ -133,13 +139,13 @@ export class LargeFileStorageDelta {
         lastCommittedPointer.toString(),
       )
 
-      this.clearTempFiles()
+      // this.clearTempFiles('add')
       // input file
-      const sourcePath = this.addTempFile('source', fileContent)
+      const sourcePath = this.addTempFile('add', 'source', fileContent)
 
       const lastCommittedObject = await this.getObjectByOid(lastCommittedOid)
       // target file
-      const targetPath = this.addTempFile('target', lastCommittedObject)
+      const targetPath = this.addTempFile('add', 'target', lastCommittedObject)
 
       // compress
       const delta = this.xdelta.compress(sourcePath, targetPath)
@@ -152,6 +158,7 @@ export class LargeFileStorageDelta {
         // replace last commit version as a new delta, pointer to new source
         this.writeObject(this.objectPath(lastCommittedOid), delta, sha256)
       }
+      this.clearTempFiles('add')
     }
 
     return { sha256, size, filePath: storageFilePath }
@@ -190,7 +197,7 @@ export class LargeFileStorageDelta {
 
   /** get a LFSD object by its oid(sha256), with decompressing delta pointer, the returned object won't include any source pointer */
   getObjectByOid = async (sha256: string) => {
-    this.clearTempFiles()
+    // this.clearTempFiles('getObjectByOid')
 
     let currentOid = sha256
     const pointerList = []
@@ -207,7 +214,7 @@ export class LargeFileStorageDelta {
       const { sourceOid, fileContent } = this.parseObject(rawFileContent)
 
       // store real file content into temp directory, use oid as file name
-      this.addTempFile(currentOid, fileContent)
+      this.addTempFile('getObjectByOid', currentOid, fileContent)
 
       // record currentOid into pointerList
       pointerList.push(currentOid)
@@ -223,22 +230,27 @@ export class LargeFileStorageDelta {
     }
 
     // copy source object as base of target
-    this.addTempFile('target', this.readTempFile(sourceOid))
+    this.addTempFile(
+      'getObjectByOid',
+      'target',
+      this.readTempFile('getObjectByOid', sourceOid),
+    )
     while (pointerList.length) {
       const deltaOid = pointerList.pop() as string
 
       this.addTempFile(
+        'getObjectByOid',
         'target',
         this.xdelta.decompress(
-          this.pathOfTempFile('target'),
-          this.pathOfTempFile(deltaOid),
+          this.pathOfTempFile('getObjectByOid', 'target'),
+          this.pathOfTempFile('getObjectByOid', deltaOid),
         ),
       )
     }
 
-    const finalContent = this.readTempFile('target')
+    const finalContent = this.readTempFile('getObjectByOid', 'target')
 
-    this.clearTempFiles()
+    this.clearTempFiles('getObjectByOid')
     return finalContent
   }
 
