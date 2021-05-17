@@ -59,7 +59,7 @@ export class LargeFileStorageDelta {
       .slice(0, firstNewlineIndex)
       .toString()
 
-    if (!/^S \d{64}$/.test(sourcePointerLine)) {
+    if (!/^S [\da-f]{64}$/.test(sourcePointerLine)) {
       throw new Error(
         'LFSD: Bad object file format! No source pointer at the beginning!',
       )
@@ -127,6 +127,10 @@ export class LargeFileStorageDelta {
       fs.mkdirSync(dirPath, { recursive: true })
     }
     const storageFilePath = this.objectPath(sha256)
+    if (fs.existsSync(this.objectPath(sha256))) {
+      // if object already exists, do not store it again
+      return { sha256, size, filePath: storageFilePath }
+    }
 
     /** file content in last commit */
     const lastCommittedPointer = this.git.showFileContent(filePath)
@@ -238,14 +242,28 @@ export class LargeFileStorageDelta {
     while (pointerList.length) {
       const deltaOid = pointerList.pop() as string
 
+      // copy current target file as source
       this.addTempFile(
         'getObjectByOid',
-        'target',
-        this.xdelta.decompress(
-          this.pathOfTempFile('getObjectByOid', 'target'),
-          this.pathOfTempFile('getObjectByOid', deltaOid),
-        ),
+        'source',
+        this.readTempFile('getObjectByOid', 'target'),
       )
+
+      this.xdelta.decompressTo(
+        this.pathOfTempFile('getObjectByOid', 'source'),
+        this.pathOfTempFile('getObjectByOid', deltaOid),
+        this.pathOfTempFile('getObjectByOid', 'target'),
+        { forceOverwrite: true },
+      )
+
+      // this.addTempFile(
+      //   'getObjectByOid',
+      //   'target',
+      //   this.xdelta.decompress(
+      //     this.pathOfTempFile('getObjectByOid', 'target'),
+      //     this.pathOfTempFile('getObjectByOid', deltaOid),
+      //   ),
+      // )
     }
 
     const finalContent = this.readTempFile('getObjectByOid', 'target')

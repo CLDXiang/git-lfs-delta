@@ -167,6 +167,28 @@ export class XDelta {
     )
   }
 
+  decompressTo = (
+    sourceFilePath: string,
+    deltaFilePath: string,
+    targetFilePath: string,
+    options?: Options,
+  ) => {
+    return spawnSync(
+      this.cmd,
+      [
+        ...this.parseOptions(options),
+        '-d',
+        '-s',
+        sourceFilePath,
+        deltaFilePath,
+        targetFilePath,
+      ],
+      {
+        cwd: this.workingPath,
+      },
+    )
+  }
+
   /** xdelta3 config - print xdelta3 configuration */
   config = (options?: Options) => {
     spawnSync(this.cmd, ['config', ...this.parseOptions(options)], {
