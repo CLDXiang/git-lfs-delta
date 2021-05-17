@@ -126,7 +126,10 @@ class FilterProcessor {
           ) {
             throw new Error(`bad capability: ${content}`)
           }
-          this.writePacketText(content)
+          // TODO: support delay
+          if (content !== 'capability=delay') {
+            this.writePacketText(content)
+          }
         }
         break
       }
@@ -150,8 +153,17 @@ class FilterProcessor {
       }
 
       case 'waitingContentStart': {
-        if (this.readPacketBin().length !== 0) {
-          throw new Error('bad content start')
+        const buf = this.readPacketBin()
+        if (buf.length !== 0) {
+          const content = buf.toString()
+          throw new Error(
+            `bad content start, receive ${(content.length < 128
+              ? content
+              : `${content.slice(0, 64)}...${content.slice(
+                  content.length - 64,
+                )}`
+            ).replace(/\n/g, '\\n')}`,
+          )
         }
         this.status = 'reading'
         break
