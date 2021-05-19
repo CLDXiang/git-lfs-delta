@@ -1,10 +1,17 @@
 {
   "name": "git-lfs-delta",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "main": "./dist/index.js",
   "bin": {
     "git-lfsd": "./dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CLDXiang/git-lfs-delta.git"
+  },
+  "bugs": {
+    "url": "https://github.com/CLDXiang/git-lfs-delta/issues"
   },
   "scripts": {
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node --project tsconfig.build.json src/index.ts",
