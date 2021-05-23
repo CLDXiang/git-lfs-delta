@@ -152,7 +152,13 @@ export class LargeFileStorageDelta {
       const targetPath = this.addTempFile('add', 'target', lastCommittedObject)
 
       // compress
-      const delta = this.xdelta.compress(sourcePath, targetPath)
+      this.xdelta.compressTo(
+        sourcePath,
+        targetPath,
+        this.pathOfTempFile('add', 'delta'),
+      )
+
+      const delta = this.readTempFile('add', 'delta')
 
       // store new source
       this.writeObject(storageFilePath, fileContent)

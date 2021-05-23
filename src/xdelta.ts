@@ -167,6 +167,27 @@ export class XDelta {
     )
   }
 
+  compressTo = (
+    sourceFilePath: string,
+    targetFilePath: string,
+    deltaFilePath: string,
+    options?: Options,
+  ) => {
+    return spawnSync(
+      this.cmd,
+      [
+        ...this.parseOptions(options),
+        '-s',
+        sourceFilePath,
+        targetFilePath,
+        deltaFilePath,
+      ],
+      {
+        cwd: this.workingPath,
+      },
+    )
+  }
+
   decompressTo = (
     sourceFilePath: string,
     deltaFilePath: string,
