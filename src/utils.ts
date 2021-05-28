@@ -1,4 +1,3 @@
-import axios from 'axios'
 import chalk from 'chalk'
 import path from 'path'
 import cp from 'child_process'
@@ -43,14 +42,6 @@ export const logger = {
   },
 }
 
-/** backend url to store object. TODO: can be config */
-const BACKEND_URL = 'http://localhost:3000'
-
-/** backend axios instance */
-export const API = axios.create({
-  baseURL: BACKEND_URL,
-})
-
 // /** check whether current working directory is root of a git repository, if it's not, exit */
 // export function checkGitRepo(dir?: string) {
 //   if (!fs.existsSync(dir ? path.join(dir, '.git') : '.git')) {
@@ -91,6 +82,21 @@ export function spawnSync(
       throw res.error
     }
     logger.error(`$ ${commandString} - ${res.stderr.toString()}`)
+  }
+  // return STDOUT as string
+  return res.stdout
+}
+
+/** extend child_process.spawnSync with error handler, when encounter error, return null */
+export function spawnSyncWithoutErr(
+  command: string,
+  args?: readonly string[],
+  options?: cp.SpawnSyncOptionsWithBufferEncoding,
+): Buffer | null {
+  const res = cp.spawnSync(command, args, options)
+  if (res.status === null || res.status !== 0) {
+    // terminated due to a signal
+    return null
   }
   // return STDOUT as string
   return res.stdout

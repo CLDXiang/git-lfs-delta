@@ -1,11 +1,11 @@
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
-import { CWD, findGitRepoRootDir, FIELD, VERSION } from '../utils'
+import { CWD, findGitRepoRootDir, FIELD, VERSION, logger } from '../utils'
 import { LocalObject } from './types'
 import { Git } from '../git'
 import { XDelta } from '../xdelta'
-import { downloadFile } from '../server'
+import { downloadFile } from '../api'
 
 const ZERO_SHA256 =
   '0000000000000000000000000000000000000000000000000000000000000000'
@@ -311,6 +311,24 @@ export class LargeFileStorageDelta {
       size,
       filePath: this.objectPath(sha256),
     }
+  }
+
+  /** write server url into config */
+  setServerURL = (url: string) => {
+    // TODO: maybe a more complex checker using regexp?
+    if (
+      (!url.startsWith('http://') && !url.startsWith('https://')) ||
+      url.includes(' ')
+    ) {
+      logger.error('invalid url')
+    }
+
+    this.git.setConfig(`${FIELD}.url`, url)
+  }
+
+  /** read server url from config */
+  getServerURL = () => {
+    return this.git.getConfig(`${FIELD}.url`).trim()
   }
 }
 

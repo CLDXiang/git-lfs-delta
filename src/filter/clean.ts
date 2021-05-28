@@ -1,7 +1,5 @@
 import fs from 'fs'
-// import path from 'path'
 import lfsdCwd from '../lfsd'
-// import { uploadFile } from '../server'
 
 export async function clean(file: string, lfsd = lfsdCwd) {
   /** stdin */

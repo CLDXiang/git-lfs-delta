@@ -1,7 +1,12 @@
 import fs from 'fs'
 import path from 'path'
 import cp from 'child_process'
-import { CWD, spawnSync, findGitRepoRootDir } from '../utils'
+import {
+  CWD,
+  spawnSync,
+  spawnSyncWithoutErr,
+  findGitRepoRootDir,
+} from '../utils'
 import { Ref, RevListObject } from './types'
 import { parseRefToTypeAndName } from './utils'
 
@@ -153,6 +158,22 @@ export class Git {
     return spawnSync('git', ['cat-file', '-p', sha1], {
       cwd: this.root,
     }).toString()
+  }
+
+  /** git config `key` `value` */
+  setConfig = (key: string, value: string) => {
+    spawnSync('git', ['config', key, value], {
+      cwd: this.root,
+    })
+  }
+
+  /** git config --get `key` */
+  getConfig = (key: string) => {
+    return (
+      spawnSyncWithoutErr('git', ['config', '--get', key], {
+        cwd: this.root,
+      })?.toString() || ''
+    )
   }
 }
 

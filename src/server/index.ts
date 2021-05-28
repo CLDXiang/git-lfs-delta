@@ -1,50 +1,19 @@
-import { createReadStream, writeFileSync, existsSync, mkdirSync } from 'fs'
-import path from 'path'
-import FormData from 'form-data'
-import { API, absPath } from '../utils'
+import lfsdCwd from '../lfsd'
+import { logger } from '../utils'
 
-export async function uploadFile(localPath: string, serverPath: string) {
-  // TODO: progress, do this after move caller to pre-push hooks
-  const data = new FormData()
-
-  data.append('file', createReadStream(absPath(localPath)))
-  data.append('path', serverPath)
-  return API.post('upload', data, {
-    headers: {
-      ...data.getHeaders(),
-    },
-  })
+export function setServer(url: string) {
+  lfsdCwd.setServerURL(url)
+  logger.success(`succeed set server: ${url}`)
 }
 
-// eslint-disable-next-line consistent-return
-export async function downloadFile(
-  serverPath: string,
-  localPath: string,
-): Promise<Buffer> {
-  const resp = await API.post<{
-    type: string
-    data: number[]
-  }>('download', { path: serverPath })
-
-  if (resp.status === 200) {
-    const buffer = Buffer.from(resp.data.data)
-    if (!existsSync(path.dirname(absPath(localPath)))) {
-      // if dir not exist, create it
-      mkdirSync(path.dirname(absPath(localPath)))
-    }
-    writeFileSync(absPath(localPath), buffer)
-    return buffer
+export function viewServer() {
+  const url = lfsdCwd.getServerURL()
+  if (!url) {
+    logger.warn(
+      'no server found, please set it with "git lfsd server <server url>"',
+      false,
+    )
+  } else {
+    console.log(url)
   }
-
-  process.exit(1)
-}
-
-export async function checkNotExist(serverPaths: string[]): Promise<string[]> {
-  const resp = await API.post<string[]>('not-exist', { paths: serverPaths })
-  return resp.data
-}
-
-export async function searchOid(prefix: string): Promise<string[]> {
-  const resp = await API.get<string[]>(`search-oid?prefix=${prefix}`)
-  return resp.data
 }

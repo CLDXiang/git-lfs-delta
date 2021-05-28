@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import lfsdCwd from '../lfsd'
 import { logger } from '../utils'
-import { downloadFile, searchOid as SearchRemote } from '../server'
+import { downloadFile, searchOid as SearchRemote } from '../api'
 
 export async function catObject(oid: string, lfsd = lfsdCwd) {
   if (oid.length < 6) {

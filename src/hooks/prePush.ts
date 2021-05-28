@@ -4,7 +4,7 @@ import { logger } from '../utils'
 import { Ref, RevListObject } from '../git'
 import AttributesParser from '../AttributesParser'
 import lfsdCwd from '../lfsd'
-import { checkNotExist, uploadFile } from '../server'
+import { checkNotExist, uploadFile } from '../api'
 
 export async function prePush(args: string[], lfsd = lfsdCwd) {
   /** decode a line in pre-push hook's STDIN to two Ref objects */

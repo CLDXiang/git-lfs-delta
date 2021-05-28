@@ -6,6 +6,7 @@ import { lsFiles } from './lsFiles'
 import { clean, filterProcess, smudge } from './filter'
 import { prePush } from './hooks'
 import { catObject } from './catObject'
+import { viewServer, setServer } from './server'
 
 const program = createCommand()
 
@@ -46,6 +47,18 @@ program
   .option('-n, --name-only', 'Show only the lfs tracked file names.')
   .action((refs, options) => {
     lsFiles(refs, options)
+  })
+
+// server
+program
+  .command('server [url]')
+  .description('View or set url of remote storage server')
+  .action((url?: string) => {
+    if (url === undefined) {
+      viewServer()
+      return
+    }
+    setServer(url)
   })
 
 // cat-object

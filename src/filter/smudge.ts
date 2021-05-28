@@ -1,6 +1,4 @@
 import fs from 'fs'
-// import path from 'path'
-// import { downloadFile } from '../server'
 import lfsdCwd from '../lfsd'
 
 export async function smudge(lfsd = lfsdCwd) {
